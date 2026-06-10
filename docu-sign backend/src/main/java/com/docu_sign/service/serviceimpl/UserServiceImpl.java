@@ -1,5 +1,7 @@
 package com.docu_sign.service.serviceimpl;
 
+import com.docu_sign.dto.LoginResponse;
+import com.docu_sign.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     @Override
     public void register(RegisterRequest request) {
@@ -39,7 +42,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                                     .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -47,7 +50,13 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        return "Login Successful";
+        String token = jwtService.generateToken(user);
+
+        return new LoginResponse(
+                token,
+                user.getEmail(),
+                user.getRole().name()
+        );
        
     }
     

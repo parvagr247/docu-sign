@@ -4,7 +4,9 @@ package com.docu_sign.service.serviceimpl;
 import com.docu_sign.dto.UploadDocumentResponse;
 import com.docu_sign.entity.Document;
 import com.docu_sign.entity.DocumentStatus;
+import com.docu_sign.entity.User;
 import com.docu_sign.repo.DocumentRepository;
+import com.docu_sign.service.CurrentUserService;
 import com.docu_sign.service.DocumentService;
 import com.docu_sign.service.StorageService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
     private final StorageService storageService;
+    private final CurrentUserService currentUserService;
 
     @Override
     public UploadDocumentResponse uploadDocument(MultipartFile file) {
@@ -40,6 +43,7 @@ public class DocumentServiceImpl implements DocumentService {
                 .contentType(file.getContentType())
                 .fileSize(file.getSize())
                 .status(DocumentStatus.UPLOADED)
+                .uploadedBy(currentUserService.getCurrentUser())
                 .build();
 
         Document savedDocument =
@@ -56,7 +60,11 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public List<UploadDocumentResponse> getAllDocuments() {
-        return documentRepository.findAll()
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        return documentRepository
+                .findByUploadedBy(currentUser)
                 .stream()
                 .map(document ->
                         UploadDocumentResponse.builder()
@@ -73,9 +81,10 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public UploadDocumentResponse getDocumentById(UUID id) {
 
-        Document document = documentRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Document not found"));
+        User currentUser = currentUserService.getCurrentUser();
+
+        Document document = documentRepository.findByIdAndUploadedBy(id,currentUser)
+                .orElseThrow(() -> new RuntimeException("Document not found"));
 
         return UploadDocumentResponse.builder()
                 .id(document.getId())

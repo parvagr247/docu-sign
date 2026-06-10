@@ -24,15 +24,11 @@ public class DocumentController {
 
     @GetMapping
     public List<UploadDocumentResponse> getAllDocuments() {
-
         return documentService.getAllDocuments();
     }
 
     @GetMapping("/{id}")
-    public UploadDocumentResponse getDocumentById(
-            @PathVariable UUID id
-    ) {
-
+    public UploadDocumentResponse getDocumentById(@PathVariable UUID id) {
         return documentService.getDocumentById(id);
     }
 }

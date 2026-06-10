@@ -1,5 +1,6 @@
 package com.docu_sign.controller;
 
+import com.docu_sign.dto.LoginResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,7 +30,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login( @Valid @RequestBody LoginRequest request ) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request ) {
 
         return ResponseEntity.ok(userService.login(request));
 }
