@@ -1,6 +1,5 @@
 package com.docu_sign.entity;
 
 public enum DocumentStatus {
-
-    PENDING, SIGNED, REJECTED
+    DRAFT, UPLOADED, PENDING_SIGNATURE, PARTIALLY_SIGNED, SIGNED, REJECTED, EXPIRED, ARCHIVED
 }
