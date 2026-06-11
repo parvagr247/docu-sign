@@ -14,4 +14,6 @@ public interface StorageService {
                 long fileSize
         );
 
+        byte[] downloadFileBytes(String storagePath);
+
 }

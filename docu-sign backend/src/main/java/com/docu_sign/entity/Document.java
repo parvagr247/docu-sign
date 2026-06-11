@@ -48,6 +48,9 @@ public class Document {
     @OneToMany( mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Signer> signers;
 
+    @OneToMany( mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SignatureField> fields;
+
     @Column(nullable = false)
     private LocalDateTime uploadedAt;
 

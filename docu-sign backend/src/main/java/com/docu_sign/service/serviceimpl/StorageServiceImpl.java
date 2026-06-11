@@ -135,4 +135,57 @@ public class StorageServiceImpl implements StorageService {
             );
         }
     }
+
+    @Override
+    public byte[] downloadFileBytes(String storagePath) {
+        try {
+
+            String downloadUrl =
+                    supabaseConfig.getUrl()
+                            + "/storage/v1/object/"
+                            + supabaseConfig.getBucket()
+                            + "/"
+                            + storagePath;
+
+            HttpHeaders headers = new HttpHeaders();
+
+            headers.set(
+                    "Authorization",
+                    "Bearer " + supabaseConfig.getApiKey()
+            );
+
+            headers.set(
+                    "apikey",
+                    supabaseConfig.getApiKey()
+            );
+
+            HttpEntity<Void> requestEntity =
+                    new HttpEntity<>(headers);
+
+            ResponseEntity<byte[]> response =
+                    restTemplate.exchange(
+                            downloadUrl,
+                            HttpMethod.GET,
+                            requestEntity,
+                            byte[].class
+                    );
+
+            if (!response.getStatusCode().is2xxSuccessful()
+                    || response.getBody() == null) {
+
+                throw new StorageException(
+                        "Failed to download file from storage"
+                );
+            }
+
+            return response.getBody();
+
+        } catch (Exception e) {
+
+            throw new StorageException(
+                    "Error downloading file",
+                    e
+            );
+        }
+    }
 }
