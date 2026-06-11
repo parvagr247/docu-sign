@@ -2,8 +2,11 @@ package com.docu_sign.service.serviceimpl;
 
 
 import com.docu_sign.config.SupabaseConfig;
+import com.docu_sign.dto.DownloadedFile;
+import com.docu_sign.exception.StorageException;
 import com.docu_sign.service.StorageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -59,7 +62,7 @@ public class StorageServiceImpl implements StorageService {
                     );
 
             if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new RuntimeException(
+                throw new StorageException(
                         "Failed to upload file to Supabase"
                 );
             }
@@ -68,8 +71,66 @@ public class StorageServiceImpl implements StorageService {
 
         } catch (Exception e) {
 
-            throw new RuntimeException(
+            throw new StorageException(
                     "Error uploading file",
+                    e
+            );
+        }
+    }
+
+    @Override
+    public DownloadedFile downloadFile(String storagePath, String originalFileName, String contentType, long fileSize) {
+        try {
+
+            String downloadUrl =
+                    supabaseConfig.getUrl()
+                            + "/storage/v1/object/"
+                            + supabaseConfig.getBucket()
+                            + "/"
+                            + storagePath;
+
+            HttpHeaders headers = new HttpHeaders();
+
+            headers.set(
+                    "Authorization",
+                    "Bearer " + supabaseConfig.getApiKey()
+            );
+
+            headers.set(
+                    "apikey",
+                    supabaseConfig.getApiKey()
+            );
+
+            HttpEntity<Void> requestEntity =
+                    new HttpEntity<>(headers);
+
+            ResponseEntity<byte[]> response =
+                    restTemplate.exchange(
+                            downloadUrl,
+                            HttpMethod.GET,
+                            requestEntity,
+                            byte[].class
+                    );
+
+            if (!response.getStatusCode().is2xxSuccessful()
+                    || response.getBody() == null) {
+
+                throw new StorageException(
+                        "Failed to download file from storage"
+                );
+            }
+
+            return new DownloadedFile(
+                    new ByteArrayResource(response.getBody()),
+                    originalFileName,
+                    contentType,
+                    fileSize
+            );
+
+        } catch (Exception e) {
+
+            throw new StorageException(
+                    "Error downloading file",
                     e
             );
         }

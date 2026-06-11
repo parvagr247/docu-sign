@@ -1,5 +1,7 @@
 package com.docu_sign.service;
 
+import com.docu_sign.dto.DownloadedFile;
+import com.docu_sign.dto.SendSignatureResponse;
 import com.docu_sign.dto.UploadDocumentResponse;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,4 +15,8 @@ public interface DocumentService {
     List<UploadDocumentResponse> getAllDocuments();
 
     UploadDocumentResponse getDocumentById(UUID id);
+
+    DownloadedFile downloadDocument(UUID id);
+
+    SendSignatureResponse sendSignatureRequest(UUID id);
 }

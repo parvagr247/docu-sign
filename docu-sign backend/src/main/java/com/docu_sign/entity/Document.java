@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -36,23 +37,21 @@ public class Document {
     @Column(nullable = false)
     private DocumentStatus status;
 
-    /*
-     * Future support:
-     * Original PDF uploaded by user
-     */
+    private LocalDateTime signatureRequestedAt;
+
     private String signedDocumentPath;
 
-    /*
-     * User who uploaded document
-     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "uploaded_by")
+    @JoinColumn(name = "uploaded_by", nullable = false)
     private User uploadedBy;
 
-    @Column
+    @OneToMany( mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Signer> signers;
+
+    @Column(nullable = false)
     private LocalDateTime uploadedAt;
 
-    @Column
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @PrePersist
