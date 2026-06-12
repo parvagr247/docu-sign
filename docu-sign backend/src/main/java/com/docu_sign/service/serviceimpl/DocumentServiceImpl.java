@@ -1,11 +1,14 @@
 package com.docu_sign.service.serviceimpl;
 
 
+import com.docu_sign.config.AppProperties;
 import com.docu_sign.dto.DownloadedFile;
 import com.docu_sign.dto.SendSignatureResponse;
+import com.docu_sign.dto.SignatureRequestEmail;
 import com.docu_sign.dto.UploadDocumentResponse;
 import com.docu_sign.entity.Document;
 import com.docu_sign.entity.DocumentStatus;
+import com.docu_sign.entity.Signer;
 import com.docu_sign.entity.User;
 import com.docu_sign.exception.BusinessValidationException;
 import com.docu_sign.exception.ResourceNotFoundException;
@@ -13,6 +16,7 @@ import com.docu_sign.repo.DocumentRepository;
 import com.docu_sign.repo.SignerRepository;
 import com.docu_sign.service.CurrentUserService;
 import com.docu_sign.service.DocumentService;
+import com.docu_sign.service.EmailService;
 import com.docu_sign.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +34,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final StorageService storageService;
     private final CurrentUserService currentUserService;
     private final SignerRepository signerRepository;
+    private final EmailService emailService;
+    private final AppProperties appProperties;
 
     @Override
     public UploadDocumentResponse uploadDocument(MultipartFile file) {
@@ -123,11 +129,16 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public SendSignatureResponse sendSignatureRequest(UUID id) {
+
+        System.out.println("STEP 1 - DOCUMENT FOUND");
+
         User currentUser = currentUserService.getCurrentUser();
 
         Document document = documentRepository
                 .findByIdAndUploadedBy(id, currentUser)
                 .orElseThrow(() ->  new ResourceNotFoundException( "Document not found"));
+
+        System.out.println("STEP 2");
 
         if (!signerRepository.existsByDocument(document)) {
             throw new BusinessValidationException( "Document must contain at least one signer");
@@ -137,9 +148,37 @@ public class DocumentServiceImpl implements DocumentService {
             throw new BusinessValidationException( "Document cannot be sent in current status" );
         }
 
-        document.setStatus(DocumentStatus.PENDING_SIGNATURE);
-        document.setSignatureRequestedAt(LocalDateTime.now());
+        System.out.println("STEP 3");
+
+        List<Signer> signers = signerRepository.findByDocument(document);
+
+        for (Signer signer : signers) {
+
+            System.out.println("STEP 4");
+
+            String signingUrl =
+                    appProperties.getFrontendUrl()
+                            + "/sign/"
+                            + signer.getSigningToken();
+
+            SignatureRequestEmail email =
+                    new SignatureRequestEmail(
+                            signer.getName(),
+                            signer.getEmail(),
+                            document.getOriginalFileName(),
+                            signingUrl
+                    );
+
+            emailService.sendSignatureRequestEmail(email);
+        }
+
+        System.out.println("STEP 5");
+
+        document.setStatus( DocumentStatus.PENDING_SIGNATURE );
+        document.setSignatureRequestedAt( LocalDateTime.now() );
         Document savedDocument = documentRepository.save(document);
+
+        System.out.println("STEP 6");
 
         return new SendSignatureResponse(
                 savedDocument.getId(),
@@ -147,5 +186,27 @@ public class DocumentServiceImpl implements DocumentService {
                 savedDocument.getSignatureRequestedAt()
         );
 
+    }
+
+    @Override
+    public DownloadedFile downloadSignedDocument(UUID id) {
+        User currentUser = currentUserService.getCurrentUser();
+
+        Document document =
+                documentRepository.findByIdAndUploadedBy(id, currentUser )
+                        .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+
+        if (document.getSignedDocumentPath() == null) {
+            throw new BusinessValidationException( "Signed document not available" );
+        }
+
+        System.out.println("Original Size = " + document.getFileSize());
+
+        return storageService.downloadFile(
+                document.getSignedDocumentPath(),
+                "signed_" + document.getOriginalFileName(),
+                document.getContentType(),
+                document.getFileSize()
+        );
     }
 }

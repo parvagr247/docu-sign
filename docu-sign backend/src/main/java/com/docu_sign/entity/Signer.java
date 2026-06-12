@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -41,6 +42,8 @@ public class Signer {
 
     private LocalDateTime signedAt;
 
+    private String signatureImagePath;
+
     private LocalDateTime rejectedAt;
 
     @Column(nullable = false, updatable = false)
@@ -48,6 +51,12 @@ public class Signer {
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @OneToMany(
+            mappedBy = "signer",
+            cascade = CascadeType.ALL
+    )
+    private List<AuditLog> auditLogs;
 
     @PrePersist
     public void prePersist() {

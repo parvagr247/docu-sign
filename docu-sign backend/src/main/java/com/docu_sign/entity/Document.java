@@ -57,6 +57,13 @@ public class Document {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @OneToMany(
+            mappedBy = "document",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<AuditLog> auditLogs;
+
     @PrePersist
     public void prePersist() {
         this.uploadedAt = LocalDateTime.now();

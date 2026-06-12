@@ -30,6 +30,7 @@ public class SecurityConfig {
                         .requestMatchers("/test-token").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/documents/**").authenticated()
+                        .requestMatchers("/api/test/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

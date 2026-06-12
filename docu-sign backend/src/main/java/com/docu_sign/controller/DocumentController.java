@@ -54,6 +54,24 @@ public class DocumentController {
     @PostMapping("/{id}/send")
     public ResponseEntity<SendSignatureResponse> sendSignatureRequest( @PathVariable UUID id) {
 
+        System.out.println("CONTROLLER HIT");
+
         return ResponseEntity.ok( documentService.sendSignatureRequest(id) );
+    }
+
+    @GetMapping("/{id}/signed")
+    public ResponseEntity<Resource> downloadSignedDocument( @PathVariable UUID id ) {
+
+        DownloadedFile file = documentService.downloadSignedDocument(id);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\""
+                                + file.fileName()
+                                + "\""
+                )
+                .contentType( MediaType.parseMediaType(file.contentType()))
+                .contentLength(file.fileSize())
+                .body(file.resource());
     }
 }

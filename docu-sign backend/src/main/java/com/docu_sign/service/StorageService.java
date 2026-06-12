@@ -16,4 +16,6 @@ public interface StorageService {
 
         byte[] downloadFileBytes(String storagePath);
 
+        String uploadBytes( byte[] bytes, String fileName, String contentType );
+
 }

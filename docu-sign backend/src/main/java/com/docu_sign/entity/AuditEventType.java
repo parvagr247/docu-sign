@@ -1,0 +1,22 @@
+package com.docu_sign.entity;
+
+public enum AuditEventType {
+
+    DOCUMENT_UPLOADED,
+
+    SIGNER_ADDED,
+
+    SIGNATURE_FIELD_CREATED,
+
+    SIGNATURE_REQUESTED,
+
+    EMAIL_SENT,
+
+    LINK_OPENED,
+
+    DOCUMENT_SIGNED,
+
+    DOCUMENT_REJECTED,
+
+    DOCUMENT_DOWNLOADED
+}
