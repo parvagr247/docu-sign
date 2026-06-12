@@ -3,14 +3,12 @@ package com.docu_sign.service.serviceimpl;
 
 import com.docu_sign.dto.CreateSignerRequest;
 import com.docu_sign.dto.SignerResponse;
-import com.docu_sign.entity.Document;
-import com.docu_sign.entity.Signer;
-import com.docu_sign.entity.SignerStatus;
-import com.docu_sign.entity.User;
+import com.docu_sign.entity.*;
 import com.docu_sign.exception.DuplicateSignerException;
 import com.docu_sign.exception.ResourceNotFoundException;
 import com.docu_sign.repo.DocumentRepository;
 import com.docu_sign.repo.SignerRepository;
+import com.docu_sign.service.AuditLogService;
 import com.docu_sign.service.CurrentUserService;
 import com.docu_sign.service.SignerService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +24,7 @@ public class SignerServiceImpl implements SignerService {
     private final SignerRepository signerRepository;
     private final DocumentRepository documentRepository;
     private final CurrentUserService currentUserService;
+    private final AuditLogService auditLogService;
 
     @Override
     public SignerResponse createSigner(UUID documentId, CreateSignerRequest request) {
@@ -46,6 +45,13 @@ public class SignerServiceImpl implements SignerService {
 
         Signer savedSigner =
                 signerRepository.save(signer);
+
+        auditLogService.logEvent(
+                document,
+                savedSigner,
+                AuditEventType.SIGNER_ADDED,
+                savedSigner.getEmail()
+        );
 
         return mapToResponse(savedSigner);
 

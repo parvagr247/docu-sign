@@ -8,6 +8,7 @@ import com.docu_sign.exception.ResourceNotFoundException;
 import com.docu_sign.repo.DocumentRepository;
 import com.docu_sign.repo.SignatureFieldRepository;
 import com.docu_sign.repo.SignerRepository;
+import com.docu_sign.service.AuditLogService;
 import com.docu_sign.service.PublicSigningService;
 import com.docu_sign.service.StorageService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class PublicSigningServiceImpl implements PublicSigningService {
     private final SignatureFieldRepository signatureFieldRepository;
     private final DocumentRepository documentRepository;
     private final StorageService storageService;
+    private final AuditLogService auditLogService;
 
     @Override
     public PublicSignerViewResponse getSigningSession(String token) {
@@ -44,6 +46,13 @@ public class PublicSigningServiceImpl implements PublicSigningService {
             signer.setViewedAt(LocalDateTime.now());
 
             signerRepository.save(signer);
+
+            auditLogService.logEvent(
+                    signer.getDocument(),
+                    signer,
+                    AuditEventType.LINK_OPENED,
+                    signer.getEmail()
+            );
         }
 
         Document document = signer.getDocument();
@@ -176,6 +185,13 @@ public class PublicSigningServiceImpl implements PublicSigningService {
         signerRepository.save(signer);
 
         documentRepository.save(document);
+
+        auditLogService.logEvent(
+                document,
+                signer,
+                AuditEventType.DOCUMENT_SIGNED,
+                signer.getEmail()
+        );
 
         return new SubmitSignatureResponse(
                 signer.getId(),

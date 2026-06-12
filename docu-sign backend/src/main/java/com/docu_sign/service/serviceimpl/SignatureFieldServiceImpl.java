@@ -2,15 +2,13 @@ package com.docu_sign.service.serviceimpl;
 
 import com.docu_sign.dto.CreateSignatureFieldRequest;
 import com.docu_sign.dto.CreateSignatureFieldResponse;
-import com.docu_sign.entity.Document;
-import com.docu_sign.entity.SignatureField;
-import com.docu_sign.entity.Signer;
-import com.docu_sign.entity.User;
+import com.docu_sign.entity.*;
 import com.docu_sign.exception.BusinessValidationException;
 import com.docu_sign.exception.ResourceNotFoundException;
 import com.docu_sign.repo.DocumentRepository;
 import com.docu_sign.repo.SignatureFieldRepository;
 import com.docu_sign.repo.SignerRepository;
+import com.docu_sign.service.AuditLogService;
 import com.docu_sign.service.CurrentUserService;
 import com.docu_sign.service.SignatureFieldService;
 import com.docu_sign.service.StorageService;
@@ -32,6 +30,7 @@ public class SignatureFieldServiceImpl implements SignatureFieldService {
     private final SignerRepository signerRepository;
     private final CurrentUserService currentUserService;
     private final StorageService storageService;
+    private final AuditLogService auditLogService;
 
     @Override
     public CreateSignatureFieldResponse createField(UUID documentId, CreateSignatureFieldRequest request) {
@@ -55,6 +54,13 @@ public class SignatureFieldServiceImpl implements SignatureFieldService {
                 .build();
 
         SignatureField savedField = signatureFieldRepository.save(field);
+
+        auditLogService.logEvent(
+                document,
+                signer,
+                AuditEventType.SIGNATURE_FIELD_CREATED,
+                "Page " + savedField.getPageNumber()
+        );
 
         return mapToResponse(savedField);
     }

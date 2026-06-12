@@ -6,18 +6,12 @@ import com.docu_sign.dto.DownloadedFile;
 import com.docu_sign.dto.SendSignatureResponse;
 import com.docu_sign.dto.SignatureRequestEmail;
 import com.docu_sign.dto.UploadDocumentResponse;
-import com.docu_sign.entity.Document;
-import com.docu_sign.entity.DocumentStatus;
-import com.docu_sign.entity.Signer;
-import com.docu_sign.entity.User;
+import com.docu_sign.entity.*;
 import com.docu_sign.exception.BusinessValidationException;
 import com.docu_sign.exception.ResourceNotFoundException;
 import com.docu_sign.repo.DocumentRepository;
 import com.docu_sign.repo.SignerRepository;
-import com.docu_sign.service.CurrentUserService;
-import com.docu_sign.service.DocumentService;
-import com.docu_sign.service.EmailService;
-import com.docu_sign.service.StorageService;
+import com.docu_sign.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,6 +30,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final SignerRepository signerRepository;
     private final EmailService emailService;
     private final AppProperties appProperties;
+    private final AuditLogService auditLogService;
 
     @Override
     public UploadDocumentResponse uploadDocument(MultipartFile file) {
@@ -61,6 +56,13 @@ public class DocumentServiceImpl implements DocumentService {
 
         Document savedDocument =
                 documentRepository.save(document);
+
+        auditLogService.logEvent(
+                savedDocument,
+                null,
+                AuditEventType.DOCUMENT_UPLOADED,
+                "Document uploaded"
+        );
 
         return UploadDocumentResponse.builder()
                 .id(savedDocument.getId())
@@ -130,15 +132,11 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public SendSignatureResponse sendSignatureRequest(UUID id) {
 
-        System.out.println("STEP 1 - DOCUMENT FOUND");
-
         User currentUser = currentUserService.getCurrentUser();
 
         Document document = documentRepository
                 .findByIdAndUploadedBy(id, currentUser)
                 .orElseThrow(() ->  new ResourceNotFoundException( "Document not found"));
-
-        System.out.println("STEP 2");
 
         if (!signerRepository.existsByDocument(document)) {
             throw new BusinessValidationException( "Document must contain at least one signer");
@@ -148,9 +146,18 @@ public class DocumentServiceImpl implements DocumentService {
             throw new BusinessValidationException( "Document cannot be sent in current status" );
         }
 
-        System.out.println("STEP 3");
-
         List<Signer> signers = signerRepository.findByDocument(document);
+
+        document.setStatus( DocumentStatus.PENDING_SIGNATURE );
+        document.setSignatureRequestedAt( LocalDateTime.now() );
+        Document savedDocument = documentRepository.save(document);
+
+        auditLogService.logEvent(
+                savedDocument,
+                null,
+                AuditEventType.SIGNATURE_REQUESTED,
+                "Signature workflow started"
+        );
 
         for (Signer signer : signers) {
 
@@ -170,15 +177,14 @@ public class DocumentServiceImpl implements DocumentService {
                     );
 
             emailService.sendSignatureRequestEmail(email);
+
+            auditLogService.logEvent(
+                    document,
+                    signer,
+                    AuditEventType.EMAIL_SENT,
+                    signer.getEmail()
+            );
         }
-
-        System.out.println("STEP 5");
-
-        document.setStatus( DocumentStatus.PENDING_SIGNATURE );
-        document.setSignatureRequestedAt( LocalDateTime.now() );
-        Document savedDocument = documentRepository.save(document);
-
-        System.out.println("STEP 6");
 
         return new SendSignatureResponse(
                 savedDocument.getId(),
