@@ -64,3 +64,28 @@ export const sendSignatureRequest =
 
     return response.data;
 };
+
+export const getDocumentDownloadUrl =
+  (documentId) => {
+
+    return `http://localhost:9099/api/documents/${documentId}/download`;
+};
+
+export const downloadDocumentBlob = async (
+  documentId
+) => {
+
+  const response = await api.get(
+    `/documents/${documentId}/download`,
+    {
+      responseType: "blob",
+
+      headers: {
+        Authorization:
+          `Bearer ${getToken()}`
+      }
+    }
+  );
+
+  return response.data;
+};
