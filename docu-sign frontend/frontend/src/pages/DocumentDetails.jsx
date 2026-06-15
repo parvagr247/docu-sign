@@ -20,6 +20,9 @@ import AddSignerForm
 import PdfViewer
 from "../components/PdfViewer";
 
+import SignerSelector
+  from "../components/SignerSelector";
+
 
 
 
@@ -36,6 +39,13 @@ function DocumentDetails() {
     const [sending, setSending] = useState(false);
 
     const [pdfBlob, setPdfBlob] = useState(null);
+
+    const [
+  selectedSignerId,
+  setSelectedSignerId
+] = useState("");
+
+
 
     const handleSendRequest =
         async () => {
@@ -86,6 +96,23 @@ function DocumentDetails() {
 
         }
     };
+
+    const loadFields =
+  async () => {
+
+    try {
+
+      const data =
+        await getSignatureFields(id);
+
+      setFields(data);
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+};
 
     useEffect(() => {
 
@@ -150,9 +177,21 @@ function DocumentDetails() {
 
             <h2>PDF Preview</h2>
 
-            <PdfViewer
-            pdfBlob={pdfBlob}
-            />
+<SignerSelector
+  signers={signers}
+  selectedSignerId={selectedSignerId}
+  onChange={setSelectedSignerId}
+/>
+
+<PdfViewer
+  pdfBlob={pdfBlob}
+  documentId={id}
+  selectedSignerId={selectedSignerId}
+  fields={fields}
+  onFieldCreated={loadFields}
+  documentStatus={document.status}
+  signers={signers}
+/>
 
             <hr />
 

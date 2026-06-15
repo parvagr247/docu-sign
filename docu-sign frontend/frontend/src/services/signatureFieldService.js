@@ -14,3 +14,35 @@ export const getSignatureFields = async (documentId) => {
 
   return response.data;
 };
+
+export const createSignatureField = async (
+  documentId,
+  fieldData
+) => {
+
+  const response = await api.post(
+    `/documents/${documentId}/signature-fields`,
+    fieldData,
+    {
+      headers: {
+        Authorization: `Bearer ${getToken()}`
+      }
+    }
+  );
+
+  return response.data;
+};
+
+export const deleteSignatureField = async (
+  fieldId
+) => {
+
+  await api.delete(
+    `/signature-fields/${fieldId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${getToken()}`
+      }
+    }
+  );
+};
