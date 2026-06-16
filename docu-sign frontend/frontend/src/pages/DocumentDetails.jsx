@@ -18,10 +18,10 @@ import AddSignerForm
     from "../components/AddSignerForm";
 
 import PdfViewer
-from "../components/PdfViewer";
+    from "../components/PdfViewer";
 
 import SignerSelector
-  from "../components/SignerSelector";
+    from "../components/SignerSelector";
 
 
 
@@ -41,9 +41,14 @@ function DocumentDetails() {
     const [pdfBlob, setPdfBlob] = useState(null);
 
     const [
-  selectedSignerId,
-  setSelectedSignerId
-] = useState("");
+        selectedSignerId,
+        setSelectedSignerId
+    ] = useState("");
+
+    const [
+        placementMode,
+        setPlacementMode
+    ] = useState(false);
 
 
 
@@ -97,19 +102,23 @@ function DocumentDetails() {
         }
     };
 
-    const loadFields =
-  async () => {
+    const loadFields = async () => {
 
     try {
 
-      const data =
-        await getSignatureFields(id);
+        const data =
+            await getSignatureFields(id);
 
-      setFields(data);
+        console.log(
+            "FIELDS FROM SERVER",
+            JSON.stringify(data, null, 2)
+        );
+
+        setFields(data);
 
     } catch (error) {
 
-      console.error(error);
+        console.error(error);
 
     }
 };
@@ -121,16 +130,16 @@ function DocumentDetails() {
             try {
 
                 const [
-  documentData,
-  signerData,
-  fieldData,
-  pdfBlobData
-] = await Promise.all([
-  getDocumentById(id),
-  getDocumentSigners(id),
-  getSignatureFields(id),
-  downloadDocumentBlob(id)
-]);
+                    documentData,
+                    signerData,
+                    fieldData,
+                    pdfBlobData
+                ] = await Promise.all([
+                    getDocumentById(id),
+                    getDocumentSigners(id),
+                    getSignatureFields(id),
+                    downloadDocumentBlob(id)
+                ]);
 
                 setDocument(documentData);
                 setSigners(signerData);
@@ -160,6 +169,11 @@ function DocumentDetails() {
         return <h2>Document not found</h2>;
     }
 
+    console.log(
+        "DocumentDetails placementMode:",
+        placementMode
+    );
+
     return (
         <div>
 
@@ -177,21 +191,22 @@ function DocumentDetails() {
 
             <h2>PDF Preview</h2>
 
-<SignerSelector
-  signers={signers}
-  selectedSignerId={selectedSignerId}
-  onChange={setSelectedSignerId}
-/>
+            <SignerSelector
+                signers={signers}
+                selectedSignerId={selectedSignerId}
+                onChange={setSelectedSignerId}
+            />
 
-<PdfViewer
-  pdfBlob={pdfBlob}
-  documentId={id}
-  selectedSignerId={selectedSignerId}
-  fields={fields}
-  onFieldCreated={loadFields}
-  documentStatus={document.status}
-  signers={signers}
-/>
+            <PdfViewer
+                pdfBlob={pdfBlob}
+                documentId={id}
+                selectedSignerId={selectedSignerId}
+                fields={fields}
+                onFieldCreated={loadFields}
+                documentStatus={document.status}
+                signers={signers}
+                placementMode={placementMode}
+            />
 
             <hr />
 
@@ -344,32 +359,46 @@ function DocumentDetails() {
             </button>
 
             <button
-  onClick={async () => {
+                onClick={() =>
+                    setPlacementMode(
+                        !placementMode
+                    )
+                }
+            >
+                {
+                    placementMode
+                        ? "Finish Placement"
+                        : "Place Signature Fields"
+                }
+            </button>
 
-    try {
+            <button
+                onClick={async () => {
 
-      const blob =
-        await downloadDocumentBlob(id);
+                    try {
 
-      console.log(blob);
+                        const blob =
+                            await downloadDocumentBlob(id);
 
-    } catch (error) {
+                        console.log(blob);
 
-      console.log("FULL ERROR");
-      console.log(error);
+                    } catch (error) {
 
-      console.log("RESPONSE");
-      console.log(error.response);
+                        console.log("FULL ERROR");
+                        console.log(error);
 
-      console.log("DATA");
-      console.log(error.response?.data);
+                        console.log("RESPONSE");
+                        console.log(error.response);
 
-    }
+                        console.log("DATA");
+                        console.log(error.response?.data);
 
-  }}
->
-  Test Blob Download
-</button>
+                    }
+
+                }}
+            >
+                Test Blob Download
+            </button>
 
             <hr />
 

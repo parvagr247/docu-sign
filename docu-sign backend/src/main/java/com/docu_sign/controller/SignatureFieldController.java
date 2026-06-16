@@ -3,6 +3,7 @@ package com.docu_sign.controller;
 
 import com.docu_sign.dto.CreateSignatureFieldRequest;
 import com.docu_sign.dto.CreateSignatureFieldResponse;
+import com.docu_sign.dto.UpdateSignatureFieldRequest;
 import com.docu_sign.service.SignatureFieldService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,12 @@ public class SignatureFieldController {
     @GetMapping("/documents/{documentId}/signature-fields")
     public List<CreateSignatureFieldResponse> getFields( @PathVariable UUID documentId ) {
         return signatureFieldService.getFields( documentId );
+    }
+
+    @PutMapping("/signature-fields/{fieldId}")
+    public CreateSignatureFieldResponse updateField( @PathVariable UUID fieldId,
+            @Valid @RequestBody UpdateSignatureFieldRequest request ) {
+        return signatureFieldService.updateField( fieldId, request );
     }
 
     @DeleteMapping("/signature-fields/{fieldId}")

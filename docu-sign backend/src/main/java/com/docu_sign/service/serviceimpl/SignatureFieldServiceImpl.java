@@ -2,6 +2,7 @@ package com.docu_sign.service.serviceimpl;
 
 import com.docu_sign.dto.CreateSignatureFieldRequest;
 import com.docu_sign.dto.CreateSignatureFieldResponse;
+import com.docu_sign.dto.UpdateSignatureFieldRequest;
 import com.docu_sign.entity.*;
 import com.docu_sign.exception.BusinessValidationException;
 import com.docu_sign.exception.ResourceNotFoundException;
@@ -74,6 +75,27 @@ public class SignatureFieldServiceImpl implements SignatureFieldService {
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+    @Override
+    public CreateSignatureFieldResponse updateField(UUID fieldId, UpdateSignatureFieldRequest request) {
+        SignatureField field =
+                signatureFieldRepository
+                        .findById(fieldId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException( "Signature field not found" ));
+
+        Document document = field.getDocument();
+
+        getOwnedDocument( document.getId() );
+
+        field.setXPosition( request.xPosition() );
+
+        field.setYPosition( request.yPosition() );
+
+        SignatureField updatedField = signatureFieldRepository.save(field);
+
+        return mapToResponse(updatedField);
     }
 
     @Override

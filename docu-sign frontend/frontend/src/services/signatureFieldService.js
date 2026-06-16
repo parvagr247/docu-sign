@@ -46,3 +46,24 @@ export const deleteSignatureField = async (
     }
   );
 };
+
+export const updateSignatureField =
+  async (
+    fieldId,
+    fieldData
+  ) => {
+
+    const response =
+      await api.put(
+        `/signature-fields/${fieldId}`,
+        fieldData,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${getToken()}`
+          }
+        }
+      );
+
+    return response.data;
+};
