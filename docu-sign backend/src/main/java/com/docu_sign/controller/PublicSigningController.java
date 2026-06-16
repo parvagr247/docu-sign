@@ -21,6 +21,8 @@ public class PublicSigningController {
 
     @PostMapping("/{token}")
     public SubmitSignatureResponse submitSignature( @PathVariable String token, @RequestParam("signatureImage") MultipartFile signatureImage ) {
+
+        System.out.println("CONTROLLER HIT");
         return publicSigningService.submitSignature( token,  signatureImage );
     }
 

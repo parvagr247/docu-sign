@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Documents from "./pages/Document";
 import DocumentDetails from "./pages/DocumentDetails";
+import PublicSigningPage from "./pages/PublicSigningPage";
 
 function App() {
 
@@ -29,6 +30,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+  path="/sign/:token"
+  element={<PublicSigningPage />}
+/>
 
         <Route path="/documents/:id"
           element={
