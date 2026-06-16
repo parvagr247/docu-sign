@@ -9,4 +9,6 @@ public interface PublicSigningService {
     PublicSignerViewResponse getSigningSession(String token);
 
     SubmitSignatureResponse submitSignature(String token, MultipartFile signatureImage );
+
+    byte[] getSignatureImage( String token );
 }

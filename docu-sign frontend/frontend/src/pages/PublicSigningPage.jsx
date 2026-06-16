@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import {
-    getSigningSession, submitSignature
+    getSigningSession, submitSignature, completeField
 } from "../services/publicSigningService";
 
 import SignatureCanvas
@@ -58,6 +58,8 @@ function PublicSigningPage() {
         );
     };
 
+    const [fields, setFields] = useState([]);
+
     const handleSubmitSignature =
         async () => {
 
@@ -80,8 +82,8 @@ function PublicSigningPage() {
                     );
 
                 console.log(blob);
-console.log(blob.type);
-console.log(blob.size);
+                console.log(blob.type);
+                console.log(blob.size);
 
                 const response =
                     await submitSignature(
@@ -111,6 +113,36 @@ console.log(blob.size);
             }
         };
 
+    const handleFieldClick = async (
+  fieldId
+) => {
+
+  try {
+
+    await completeField(
+      token,
+      fieldId
+    );
+
+    setFields(
+      current =>
+        current.map(field =>
+          field.id === fieldId
+            ? {
+                ...field,
+                completed: true
+              }
+            : field
+        )
+    );
+
+  } catch (error) {
+
+    console.error(error);
+  }
+};
+
+
     useEffect(() => {
 
         const loadSession = async () => {
@@ -121,26 +153,27 @@ console.log(blob.size);
                     await getSigningSession(token);
 
                 setSession(data);
+                setFields(data.fields);
 
             } catch (error) {
 
-                
-  console.log(
-    "FULL ERROR",
-    error.response
-  );
 
-  console.log(
-    "RESPONSE DATA",
-    error.response?.data
-  );
+                console.log(
+                    "FULL ERROR",
+                    error.response
+                );
 
-  console.log(
-    "STATUS",
-    error.response?.status
-  );
+                console.log(
+                    "RESPONSE DATA",
+                    error.response?.data
+                );
 
-  console.error(error);
+                console.log(
+                    "STATUS",
+                    error.response?.status
+                );
+
+                console.error(error);
 
             } finally {
 
@@ -188,7 +221,59 @@ console.log(blob.size);
                         Signature Preview
                     </h3>
 
-                    
+                    <h3>Fields</h3>
+
+{fields.map(field => (
+
+  <div
+    key={field.id}
+    style={{
+      border: "1px solid black",
+      padding: "10px",
+      marginBottom: "10px",
+      cursor: "pointer"
+    }}
+    onClick={() =>
+      handleFieldClick(field.id)
+    }
+  >
+
+    <div>
+      Page:
+      {" "}
+      {field.pageNumber}
+    </div>
+
+    <div>
+      Status:
+      {" "}
+      {field.completed
+        ? "Completed"
+        : "Pending"}
+    </div>
+
+    {
+      field.completed &&
+      signatureDataUrl && (
+
+        <img
+  src={
+    `http://localhost:9099/api/public/sign/${token}/signature`
+  }
+  alt="signature"
+  style={{
+    width: 150
+  }}
+/>
+
+      )
+    }
+
+  </div>
+
+))}
+
+
 
                     <img
                         src={signatureDataUrl}

@@ -25,3 +25,15 @@ export const submitSignature = async (
 
   return response.data;
 };
+
+export const completeField = async (
+  token,
+  fieldId
+) => {
+
+  const response = await api.post(
+    `/public/sign/${token}/fields/${fieldId}/complete`
+  );
+
+  return response.data;
+};

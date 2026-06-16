@@ -3,6 +3,7 @@ package com.docu_sign.dto;
 import com.docu_sign.entity.DocumentStatus;
 import com.docu_sign.entity.SignerStatus;
 
+import java.util.List;
 import java.util.UUID;
 
 public record PublicSignerViewResponse(
@@ -19,7 +20,13 @@ public record PublicSignerViewResponse(
 
         String documentName,
 
-        DocumentStatus documentStatus
+        DocumentStatus documentStatus,
+
+        String signatureImagePath,
+
+        List<SignatureFieldViewResponse> fields
+
+
 
 ) {
 }

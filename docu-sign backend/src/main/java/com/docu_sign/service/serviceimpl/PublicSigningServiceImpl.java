@@ -1,11 +1,13 @@
 package com.docu_sign.service.serviceimpl;
 
 import com.docu_sign.dto.PublicSignerViewResponse;
+import com.docu_sign.dto.SignatureFieldViewResponse;
 import com.docu_sign.dto.SubmitSignatureResponse;
 import com.docu_sign.entity.*;
 import com.docu_sign.exception.BusinessValidationException;
 import com.docu_sign.exception.ResourceNotFoundException;
 import com.docu_sign.repo.DocumentRepository;
+import com.docu_sign.repo.FieldCompletionRepository;
 import com.docu_sign.repo.SignatureFieldRepository;
 import com.docu_sign.repo.SignerRepository;
 import com.docu_sign.service.AuditLogService;
@@ -29,10 +31,11 @@ import java.util.List;
 public class PublicSigningServiceImpl implements PublicSigningService {
 
     private final SignerRepository signerRepository;
-    private final SignatureFieldRepository signatureFieldRepository;
     private final DocumentRepository documentRepository;
     private final StorageService storageService;
     private final AuditLogService auditLogService;
+    private final SignatureFieldRepository signatureFieldRepository;
+    private final FieldCompletionRepository fieldCompletionRepository;
 
     @Override
     public PublicSignerViewResponse getSigningSession(String token) {
@@ -57,6 +60,25 @@ public class PublicSigningServiceImpl implements PublicSigningService {
 
         Document document = signer.getDocument();
 
+        List<SignatureField> fields =
+                signatureFieldRepository.findBySigner(signer);
+
+        List<SignatureFieldViewResponse> fieldResponses =
+                fields.stream()
+                        .map(field -> new SignatureFieldViewResponse(
+
+                                field.getId(),
+                                field.getPageNumber(),
+                                field.getXPosition(),
+                                field.getYPosition(),
+                                field.getWidth(),
+                                field.getHeight(),
+                                field.getRequired(),
+                                fieldCompletionRepository
+                                        .existsBySignatureField(field)
+                        ))
+                        .toList();
+
         return new PublicSignerViewResponse(
                 signer.getId(),
                 signer.getName(),
@@ -64,7 +86,9 @@ public class PublicSigningServiceImpl implements PublicSigningService {
                 signer.getStatus(),
                 document.getId(),
                 document.getOriginalFileName(),
-                document.getStatus()
+                document.getStatus(),
+                signer.getSignatureImagePath(),
+                fieldResponses
         );
 
     }
@@ -201,6 +225,37 @@ public class PublicSigningServiceImpl implements PublicSigningService {
                 "Document signed successfully"
         );
 
+    }
+
+    @Override
+    public byte[] getSignatureImage(
+            String token
+    ) {
+
+        Signer signer =
+                signerRepository
+                        .findBySigningToken(token)
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Signing session not found"
+                                        )
+                        );
+
+        if (
+                signer.getSignatureImagePath()
+                        == null
+        ) {
+
+            throw new BusinessValidationException(
+                    "No signature found"
+            );
+        }
+
+        return storageService
+                .downloadFileBytes(
+                        signer.getSignatureImagePath()
+                );
     }
 
     private byte[] renderSignedPdf( byte[] pdfBytes,  byte[] signatureBytes,  List<SignatureField> fields ) {
