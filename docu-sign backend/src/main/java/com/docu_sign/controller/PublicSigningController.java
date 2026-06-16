@@ -1,12 +1,12 @@
 package com.docu_sign.controller;
 
-import com.docu_sign.dto.FieldCompletionResponse;
-import com.docu_sign.dto.PublicSignerViewResponse;
-import com.docu_sign.dto.SubmitSignatureResponse;
+import com.docu_sign.dto.*;
 import com.docu_sign.service.FieldCompletionService;
 import com.docu_sign.service.PublicSigningService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,6 +42,33 @@ public class PublicSigningController {
     public byte[] getSignatureImage( @PathVariable String token ) {
 
         return publicSigningService.getSignatureImage(token);
+    }
+
+    @GetMapping("/{token}/document")
+    public ResponseEntity<byte[]> downloadDocument( @PathVariable String token ) {
+
+        byte[] pdfBytes = publicSigningService.downloadDocument(token);
+
+        return ResponseEntity.ok()
+                .header( HttpHeaders.CONTENT_DISPOSITION, "inline; filename=document.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
+    }
+
+    @PostMapping(
+            value = "/{token}/signature",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<SaveSignatureResponse> saveSignature(
+            @PathVariable String token, @RequestParam("signatureImage") MultipartFile signatureImage
+    ) {
+        return ResponseEntity.ok(publicSigningService.saveSignature(token, signatureImage));
+    }
+
+    @PostMapping( "/{token}/complete")
+    public CompleteSigningResponse completeSigning( @PathVariable String token ) {
+
+        return publicSigningService.completeSigning( token );
     }
 
 }

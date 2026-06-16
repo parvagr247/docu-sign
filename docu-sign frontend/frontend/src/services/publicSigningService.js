@@ -37,3 +37,52 @@ export const completeField = async (
 
   return response.data;
 };
+
+export const downloadSigningPdf =
+  async (token) => {
+
+    const response =
+      await api.get(
+        `/public/sign/${token}/document`,
+        {
+          responseType: "blob"
+        }
+      );
+
+    return response.data;
+};
+
+export const saveSignature =
+  async (
+    token,
+    signatureBlob
+  ) => {
+
+    const formData =
+      new FormData();
+
+    formData.append(
+      "signatureImage",
+      signatureBlob,
+      "signature.png"
+    );
+
+    const response =
+      await api.post(
+        `/public/sign/${token}/signature`,
+        formData
+      );
+
+    return response.data;
+};
+
+export const completeSigning =
+  async (token) => {
+
+    const response =
+      await api.post(
+        `/public/sign/${token}/complete`
+      );
+
+    return response.data;
+};

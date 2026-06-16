@@ -43,6 +43,11 @@ public class StorageServiceImpl implements StorageService {
             headers.set("apikey",
                     supabaseConfig.getApiKey());
 
+            headers.set(
+                    "x-upsert",
+                    "true"
+            );
+
             headers.setContentType(
                     MediaType.APPLICATION_PDF
             );
@@ -213,6 +218,11 @@ public class StorageServiceImpl implements StorageService {
             headers.set(
                     "apikey",
                     supabaseConfig.getApiKey()
+            );
+
+            headers.set(
+                    "x-upsert",
+                    "true"
             );
 
             headers.setContentType(

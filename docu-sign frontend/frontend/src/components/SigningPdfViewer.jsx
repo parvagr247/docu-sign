@@ -80,7 +80,8 @@ function SigningPdfViewer({
                 style={{
                   position: "relative",
                   width: "800px",
-                  marginBottom: "20px"
+                  marginBottom: "20px",
+                  overflow: "visible"
                 }}
               >
 
@@ -113,11 +114,18 @@ function SigningPdfViewer({
                           signatureImageUrl
                         }
 
-                        onClick={() =>
+                        onClick={() => {
+
+                          console.log(
+                            "FIELD ID",
+                            field.id
+                          );
+
                           onFieldClick(
                             field.id
-                          )
-                        }
+                          );
+
+                        }}
                       />
 
                     ))

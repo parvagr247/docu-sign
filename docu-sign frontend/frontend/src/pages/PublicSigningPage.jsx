@@ -2,8 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import {
-    getSigningSession, submitSignature, completeField
+    getSigningSession, saveSignature, completeField, downloadSigningPdf, completeSigning
 } from "../services/publicSigningService";
+
+import SigningPdfViewer
+    from "../components/SigningPdfViewer";
+
 
 import SignatureCanvas
     from "../components/SignatureCanvas";
@@ -18,6 +22,9 @@ function PublicSigningPage() {
 
     const [loading, setLoading] =
         useState(true);
+
+    const [pdfBlob, setPdfBlob] =
+        useState(null);
 
     const [signatureDataUrl,
         setSignatureDataUrl]
@@ -60,43 +67,35 @@ function PublicSigningPage() {
 
     const [fields, setFields] = useState([]);
 
-    const handleSubmitSignature =
-        async () => {
 
-            if (!signatureDataUrl) {
-
-                alert(
-                    "Please save a signature first"
-                );
-
-                return;
-            }
+    const handleSignatureSave =
+        async (dataUrl) => {
 
             try {
 
-                setSubmitting(true);
-
                 const blob =
-                    dataUrlToBlob(
-                        signatureDataUrl
+                    dataUrlToBlob(dataUrl);
+
+                await saveSignature(
+                    token,
+                    blob
+                );
+
+                setSignatureDataUrl(
+                    dataUrl
+                );
+
+                const updatedSession =
+                    await getSigningSession(
+                        token
                     );
 
-                console.log(blob);
-                console.log(blob.type);
-                console.log(blob.size);
-
-                const response =
-                    await submitSignature(
-                        token,
-                        blob
-                    );
-
-                console.log(
-                    response
+                setSession(
+                    updatedSession
                 );
 
                 alert(
-                    "Document signed successfully"
+                    "Signature saved"
                 );
 
             } catch (error) {
@@ -104,44 +103,93 @@ function PublicSigningPage() {
                 console.error(error);
 
                 alert(
-                    "Failed to sign document"
+                    "Failed to save signature"
                 );
-
-            } finally {
-
-                setSubmitting(false);
             }
         };
 
-    const handleFieldClick = async (
-  fieldId
-) => {
+    const handleFieldClick =
+        async (fieldId) => {
 
-  try {
+            console.log(
+                "signatureDataUrl",
+                signatureDataUrl
+            );
 
-    await completeField(
-      token,
-      fieldId
-    );
+            console.log(
+                "session.signatureImagePath",
+                session.signatureImagePath
+            );
 
-    setFields(
-      current =>
-        current.map(field =>
-          field.id === fieldId
-            ? {
-                ...field,
-                completed: true
-              }
-            : field
-        )
-    );
+            if (!signatureDataUrl) {
 
-  } catch (error) {
+                alert(
+                    "Please create a signature first"
+                );
 
-    console.error(error);
-  }
-};
+                return;
+            }
 
+            try {
+
+                await completeField(
+                    token,
+                    fieldId
+                );
+
+                setFields(
+                    current =>
+                        current.map(field =>
+                            field.id === fieldId
+                                ? {
+                                    ...field,
+                                    completed: true
+                                }
+                                : field
+                        )
+                );
+
+            } catch (error) {
+
+                console.error(error);
+            }
+        };
+
+
+    const handleFinishSigning =
+        async () => {
+
+            try {
+
+                const response =
+                    await completeSigning(
+                        token
+                    );
+
+                alert(
+                    response.message
+                );
+
+                const updatedSession =
+                    await getSigningSession(
+                        token
+                    );
+
+                setSession(
+                    updatedSession
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    error.response?.data?.message
+                    ||
+                    "Unable to finish signing"
+                );
+            }
+        };
 
     useEffect(() => {
 
@@ -154,6 +202,11 @@ function PublicSigningPage() {
 
                 setSession(data);
                 setFields(data.fields);
+
+                const pdf =
+                    await downloadSigningPdf(token);
+
+                setPdfBlob(pdf);
 
             } catch (error) {
 
@@ -211,8 +264,36 @@ function PublicSigningPage() {
             </p>
 
             <SignatureCanvas
-                onSave={setSignatureDataUrl}
+                onSave={handleSignatureSave}
             />
+
+            <div
+                style={{
+                    marginTop: "20px",
+                    marginBottom: "20px"
+                }}
+            >
+
+                <strong>
+
+                    {
+                        fields.filter(
+                            field => field.completed
+                        ).length
+                    }
+
+                    /
+
+                    {fields.length}
+
+                    {" "}
+                    completed
+
+                </strong>
+
+            </div>
+
+
 
             {signatureDataUrl && (
                 <div>
@@ -221,57 +302,27 @@ function PublicSigningPage() {
                         Signature Preview
                     </h3>
 
-                    <h3>Fields</h3>
+                    {
+                        pdfBlob && (
 
-{fields.map(field => (
+                            <SigningPdfViewer
 
-  <div
-    key={field.id}
-    style={{
-      border: "1px solid black",
-      padding: "10px",
-      marginBottom: "10px",
-      cursor: "pointer"
-    }}
-    onClick={() =>
-      handleFieldClick(field.id)
-    }
-  >
+                                pdfBlob={pdfBlob}
 
-    <div>
-      Page:
-      {" "}
-      {field.pageNumber}
-    </div>
+                                fields={fields}
 
-    <div>
-      Status:
-      {" "}
-      {field.completed
-        ? "Completed"
-        : "Pending"}
-    </div>
+                                signatureImageUrl={
+                                    `http://localhost:9099/api/public/sign/${token}/signature`
+                                }
 
-    {
-      field.completed &&
-      signatureDataUrl && (
+                                onFieldClick={
+                                    handleFieldClick
+                                }
 
-        <img
-  src={
-    `http://localhost:9099/api/public/sign/${token}/signature`
-  }
-  alt="signature"
-  style={{
-    width: 150
-  }}
-/>
+                            />
 
-      )
-    }
-
-  </div>
-
-))}
+                        )
+                    }
 
 
 
@@ -288,20 +339,14 @@ function PublicSigningPage() {
 
             <button
                 onClick={
-                    handleSubmitSignature
-                }
-                disabled={
-                    submitting
+                    handleFinishSigning
                 }
             >
 
-                {
-                    submitting
-                        ? "Signing..."
-                        : "Sign Document"
-                }
+                Finish Signing
 
             </button>
+
 
         </div>
     );

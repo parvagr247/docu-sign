@@ -12,48 +12,59 @@ function SigningFieldOverlay({
 
   return (
 
-    <div
-      onClick={onClick}
+   <div
+  onClick={() => {
+
+    console.log(
+      "OVERLAY CLICKED"
+    );
+
+    onClick?.();
+
+  }}
       style={{
+  position: "absolute",
 
-        position: "absolute",
+  zIndex: 9999,
 
-        left:
-          field.xPosition * scale,
+  pointerEvents: "auto",
 
-        top:
-          (
-            pageHeight
-            - field.yPosition
-            - field.height
-          ) * scale,
+  left:
+    field.xPosition * scale,
 
-        width:
-          field.width * scale,
+  top:
+    (
+      pageHeight
+      - field.yPosition
+      - field.height
+    ) * scale,
 
-        height:
-          field.height * scale,
+  width:
+    field.width * scale,
 
-        cursor: "pointer",
+  height:
+    field.height * scale,
 
-        display: "flex",
+  cursor: "pointer",
 
-        alignItems: "center",
+  display: "flex",
 
-        justifyContent: "center",
+  alignItems: "center",
 
-        overflow: "hidden",
+  justifyContent: "center",
 
-        border:
-          field.completed
-            ? "none"
-            : "2px dashed blue",
+  overflow: "hidden",
 
-        background:
-          field.completed
-            ? "transparent"
-            : "rgba(0,0,255,0.1)"
-      }}
+  border:
+    field.completed
+      ? "none"
+      : "2px dashed blue",
+
+  background:
+    field.completed
+      ? "transparent"
+      : "rgba(0,0,255,0.3)"
+}}
     >
 
       {

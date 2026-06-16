@@ -1,8 +1,6 @@
 package com.docu_sign.service.serviceimpl;
 
-import com.docu_sign.dto.PublicSignerViewResponse;
-import com.docu_sign.dto.SignatureFieldViewResponse;
-import com.docu_sign.dto.SubmitSignatureResponse;
+import com.docu_sign.dto.*;
 import com.docu_sign.entity.*;
 import com.docu_sign.exception.BusinessValidationException;
 import com.docu_sign.exception.ResourceNotFoundException;
@@ -256,6 +254,236 @@ public class PublicSigningServiceImpl implements PublicSigningService {
                 .downloadFileBytes(
                         signer.getSignatureImagePath()
                 );
+    }
+
+    @Override
+    public byte[] downloadDocument(
+            String token
+    ) {
+
+        Signer signer =
+                signerRepository
+                        .findBySigningToken(token)
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Signing session not found"
+                                        )
+                        );
+
+        return storageService
+                .downloadFileBytes(
+                        signer.getDocument()
+                                .getStoragePath()
+                );
+    }
+
+    @Override
+    public SaveSignatureResponse saveSignature(
+            String token,
+            MultipartFile signatureImage
+    ) {
+
+        Signer signer =
+                signerRepository
+                        .findBySigningToken(token)
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Signing session not found"
+                                        )
+                        );
+
+        if (signatureImage.isEmpty()) {
+
+            throw new BusinessValidationException(
+                    "Signature image is required"
+            );
+        }
+
+        String contentType =
+                signatureImage.getContentType();
+
+        if (
+                contentType == null ||
+                        !contentType.startsWith("image/")
+        ) {
+
+            throw new BusinessValidationException(
+                    "Only image files are allowed"
+            );
+        }
+
+        byte[] signatureBytes;
+
+        try {
+
+            signatureBytes =
+                    signatureImage.getBytes();
+
+        } catch (Exception ex) {
+
+            throw new BusinessValidationException(
+                    "Unable to read signature image"
+            );
+        }
+
+        String signaturePath =
+                storageService.uploadBytes(
+                        signatureBytes,
+                        "signatures/"
+                                + signer.getId()
+                                + ".png",
+                        contentType
+                );
+
+        signer.setSignatureImagePath(
+                signaturePath
+        );
+
+        signerRepository.save(
+                signer
+        );
+
+        return new SaveSignatureResponse(
+                signer.getId(),
+                signaturePath,
+                "Signature saved successfully"
+        );
+    }
+
+    @Override
+    public CompleteSigningResponse completeSigning(
+            String token
+    ) {
+
+        System.out.println("COMPLETE SIGNING HIT");
+
+        Signer signer =
+                signerRepository
+                        .findBySigningToken(token)
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Signing session not found"
+                                        )
+                        );
+
+        if (
+                signer.getSignatureImagePath()
+                        == null
+        ) {
+
+            throw new BusinessValidationException(
+                    "Please save a signature first"
+            );
+        }
+
+        List<SignatureField> fields =
+                signatureFieldRepository
+                        .findBySigner(signer);
+
+        for (SignatureField field : fields) {
+
+            if (
+                    field.getRequired()
+                            &&
+                            !fieldCompletionRepository
+                                    .existsBySignatureField(field)
+            ) {
+
+                throw new BusinessValidationException(
+                        "Please complete all required fields"
+                );
+            }
+        }
+
+        if (
+                signer.getStatus()
+                        == SignerStatus.SIGNED
+        ) {
+
+            throw new BusinessValidationException(
+                    "Document already signed"
+            );
+        }
+
+        signer.setStatus(
+                SignerStatus.SIGNED
+        );
+
+        signer.setSignedAt(
+                LocalDateTime.now()
+        );
+
+        Document document =
+                signer.getDocument();
+
+        boolean allSignersSigned =
+                document.getSigners()
+                        .stream()
+                        .allMatch(
+                                s ->
+                                        s.getId().equals(
+                                                signer.getId()
+                                        )
+                                                ||
+                                                s.getStatus()
+                                                        ==
+                                                        SignerStatus.SIGNED
+                        );
+
+        if (allSignersSigned) {
+
+            document.setStatus(
+                    DocumentStatus.SIGNED
+            );
+
+        } else {
+
+            document.setStatus(
+                    DocumentStatus.PARTIALLY_SIGNED
+            );
+        }
+
+        System.out.println(
+                "STATUS BEFORE SAVE = "
+                        + signer.getStatus()
+        );
+
+        System.out.println(
+                "SIGNED_AT BEFORE SAVE = "
+                        + signer.getSignedAt()
+        );
+
+        signerRepository.save(
+                signer
+        );
+
+        documentRepository.save(
+                document
+        );
+
+        auditLogService.logEvent(
+                document,
+                signer,
+                AuditEventType.DOCUMENT_SIGNED,
+                signer.getEmail()
+        );
+
+        return new CompleteSigningResponse(
+
+                signer.getId(),
+
+                signer.getStatus(),
+
+                document.getStatus(),
+
+                signer.getSignedAt(),
+
+                "Document signed successfully"
+
+        );
     }
 
     private byte[] renderSignedPdf( byte[] pdfBytes,  byte[] signatureBytes,  List<SignatureField> fields ) {
