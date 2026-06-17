@@ -59,7 +59,23 @@ public class EmailServiceImpl implements EmailService {
 
             System.out.println("EMAIL STEP 6");
 
-            throw new EmailDeliveryException("Failed to send email to "  + email.recipientEmail(), ex );
+            ex.printStackTrace();
+
+            System.out.println(
+                    "ERROR TYPE = "
+                            + ex.getClass().getName()
+            );
+
+            System.out.println(
+                    "ERROR MESSAGE = "
+                            + ex.getMessage()
+            );
+
+            throw new EmailDeliveryException(
+                    "Failed to send email to "
+                            + email.recipientEmail(),
+                    ex
+            );
         }
     }
 
