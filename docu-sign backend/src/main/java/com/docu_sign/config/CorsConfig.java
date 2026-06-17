@@ -21,9 +21,13 @@ public class CorsConfig {
         );
 
         configuration.setAllowedMethods(
-                List.of("*")
+                List.of("GET", "POST", "PUT", "OPTIONS", "DELETE")
         );
 
+        configuration.setExposedHeaders(
+                List.of("*")
+        );
+        
         configuration.setAllowedHeaders(
                 List.of("*")
         );
