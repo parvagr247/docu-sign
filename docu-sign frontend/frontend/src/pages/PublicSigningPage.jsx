@@ -255,7 +255,6 @@ setMessage(
         return <div>Signing session not found</div>;
     }
 
-    console.log( "VITE_API_URL =", import.meta.env.VITE_API_URL );
 
     return (
   <div className="signing-page">
@@ -385,7 +384,7 @@ setMessage(
             pdfBlob={pdfBlob}
             fields={fields}
             signatureImageUrl={
-              `${import.meta.env.VITE_API_URL}/public/sign/${token}/signature`
+              `${import.meta.env.VITE_API_URL}/api/public/sign/${token}/signature`
             }
             onFieldClick={
               handleFieldClick
