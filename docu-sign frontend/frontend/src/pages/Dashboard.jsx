@@ -1,28 +1,54 @@
-import { clearAuthData } from "../utils/token";
-import { useNavigate } from "react-router-dom";
+import "./styles/Dashboard.css";
+import Layout from "../components/Layout";
 
 function Dashboard() {
 
-  const navigate = useNavigate();
-
-  const logout = () => {
-
-    clearAuthData();
-
-    navigate("/");
-
-  };
-
   return (
-    <div>
+    <Layout>
+    <div className="dashboard">
 
-      <h1>Dashboard</h1>
+      <div className="dashboard-header">
 
-      <button onClick={logout}>
-        Logout
-      </button>
+  <div>
+
+    <h1>
+      Welcome Back 👋
+    </h1>
+
+    <p>
+      Manage documents, signers and workflows
+    </p>
+
+  </div>
+
+</div>
+
+      <div className="stats-grid">
+
+        <div className="stat-card">
+          <p>Total Documents</p>
+          <h2>--</h2>
+        </div>
+
+        <div className="stat-card">
+          <p>Pending Signatures</p>
+          <h2>--</h2>
+        </div>
+
+        <div className="stat-card">
+          <p>Completed Documents</p>
+          <h2>--</h2>
+        </div>
+
+        <div className="stat-card">
+          <p>Sent Today</p>
+          <h2>--</h2>
+        </div>
+
+      </div>
 
     </div>
+    </Layout>
   );
 }
 

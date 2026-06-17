@@ -8,9 +8,7 @@ import com.docu_sign.repo.DocumentRepository;
 import com.docu_sign.repo.FieldCompletionRepository;
 import com.docu_sign.repo.SignatureFieldRepository;
 import com.docu_sign.repo.SignerRepository;
-import com.docu_sign.service.AuditLogService;
-import com.docu_sign.service.PublicSigningService;
-import com.docu_sign.service.StorageService;
+import com.docu_sign.service.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -34,6 +32,8 @@ public class PublicSigningServiceImpl implements PublicSigningService {
     private final AuditLogService auditLogService;
     private final SignatureFieldRepository signatureFieldRepository;
     private final FieldCompletionRepository fieldCompletionRepository;
+    private final CertificateService certificateService;
+    private final EmailService emailService;
 
     @Override
     public PublicSignerViewResponse getSigningSession(String token) {
@@ -188,6 +188,7 @@ public class PublicSigningServiceImpl implements PublicSigningService {
                                 s -> s.getId().equals(signer.getId())
                                         || s.getStatus() == SignerStatus.SIGNED
                         );
+
 
         if (allSignersSigned) {
 
@@ -352,6 +353,7 @@ public class PublicSigningServiceImpl implements PublicSigningService {
         );
     }
 
+    @Deprecated
     @Override
     public CompleteSigningResponse completeSigning(
             String token
@@ -408,16 +410,54 @@ public class PublicSigningServiceImpl implements PublicSigningService {
             );
         }
 
-        signer.setStatus(
-                SignerStatus.SIGNED
+        signer.setStatus(SignerStatus.SIGNED);
+        signer.setSignedAt(LocalDateTime.now());
+
+        Document document = signer.getDocument();
+
+        System.out.println("STEP A - START PDF GENERATION");
+
+        byte[] signatureBytes =
+                storageService.downloadFileBytes(
+                        signer.getSignatureImagePath()
+                );
+
+        System.out.println("STEP B - PDF DOWNLOADED");
+
+        byte[] originalPdfBytes =
+                storageService.downloadFileBytes(
+                        document.getStoragePath()
+                );
+
+        System.out.println("STEP C - PDF RENDERED");
+
+
+        byte[] signedPdfBytes =
+                renderSignedPdf(
+                        originalPdfBytes,
+                        signatureBytes,
+                        fields
+                );
+
+
+
+        String signedPdfPath =
+                storageService.uploadBytes(
+                        signedPdfBytes,
+                        "signed-documents/"
+                                + document.getId()
+                                + ".pdf",
+                        "application/pdf"
+                );
+
+        document.setSignedDocumentPath(
+                signedPdfPath
         );
 
-        signer.setSignedAt(
-                LocalDateTime.now()
+        System.out.println("STEP D - SIGNED PDF SAVED");
+        System.out.println(
+                "SIGNED PDF PATH = " + signedPdfPath
         );
-
-        Document document =
-                signer.getDocument();
 
         boolean allSignersSigned =
                 document.getSigners()
@@ -435,10 +475,44 @@ public class PublicSigningServiceImpl implements PublicSigningService {
 
         if (allSignersSigned) {
 
+            System.out.println("ALL SIGNERS SIGNED");
+
             document.setStatus(
                     DocumentStatus.SIGNED
             );
 
+            String certificatePath =
+                    certificateService
+                            .generateCertificate(
+                                    document
+                            );
+
+            document.setCertificatePath(
+                    certificatePath
+            );
+
+            DocumentCompletedEmail email =
+                    new DocumentCompletedEmail(
+
+                            document
+                                    .getUploadedBy()
+                                    .getFullName(),
+
+                            document
+                                    .getUploadedBy()
+                                    .getEmail(),
+
+                            document
+                                    .getOriginalFileName()
+
+                    );
+
+            System.out.println("ABOUT TO SEND COMPLETION EMAIL");
+
+            emailService
+                    .sendDocumentCompletedEmail(
+                            email
+                    );
         } else {
 
             document.setStatus(
@@ -495,13 +569,28 @@ public class PublicSigningServiceImpl implements PublicSigningService {
 
                 PDPage page = pdf.getPage(field.getPageNumber() - 1 );
 
+                float pageHeight =
+                        page.getMediaBox().getHeight();
+
+                float pdfY =
+                        pageHeight
+                                - field.getYPosition()
+                                - field.getHeight();
+
                 try (
-                        PDPageContentStream contentStream = new PDPageContentStream( pdf, page, PDPageContentStream.AppendMode.APPEND, true )
+                        PDPageContentStream contentStream =
+                                new PDPageContentStream(
+                                        pdf,
+                                        page,
+                                        PDPageContentStream.AppendMode.APPEND,
+                                        true
+                                )
                 ) {
+
                     contentStream.drawImage(
                             image,
                             field.getXPosition(),
-                            field.getYPosition(),
+                            pdfY,
                             field.getWidth(),
                             field.getHeight()
                     );

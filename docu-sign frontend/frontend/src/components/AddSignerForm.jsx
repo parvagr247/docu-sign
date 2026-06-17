@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createSigner } from "../services/signerService";
+import "./styles/AddSignerForm.css";
 
 function AddSignerForm({
   documentId,
@@ -54,52 +55,68 @@ function AddSignerForm({
   };
 
   return (
-    <div>
 
-      <h2>Add Signer</h2>
+    <form
+      className="add-signer-form"
+      onSubmit={handleSubmit}
+    >
 
-      <form onSubmit={handleSubmit}>
+      <div className="form-group">
+
+        <label>
+          Signer Name
+        </label>
 
         <input
           type="text"
-          placeholder="Signer Name"
+          placeholder="Enter full name"
           value={name}
           onChange={(e) =>
             setName(e.target.value)
           }
         />
 
-        <br /><br />
+      </div>
+
+      <div className="form-group">
+
+        <label>
+          Email Address
+        </label>
 
         <input
           type="email"
-          placeholder="Signer Email"
+          placeholder="Enter email address"
           value={email}
           onChange={(e) =>
             setEmail(e.target.value)
           }
         />
 
-        <br /><br />
+      </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-        >
-          {loading
-            ? "Adding..."
-            : "Add Signer"}
-        </button>
+      {
+        error && (
+          <p className="form-error">
+            {error}
+          </p>
+        )
+      }
 
-      </form>
+      <button
+        className="add-signer-btn"
+        type="submit"
+        disabled={loading}
+      >
+        {
+          loading
+            ? "Adding Signer..."
+            : "+ Add Signer"
+        }
+      </button>
 
-      {error && (
-        <p style={{ color: "red" }}>
-          {error}
-        </p>
-      )}
+    </form>
 
-    </div>
   );
 }
 

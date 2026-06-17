@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
 import { saveAuthData } from "../utils/token";
 
+import "./styles/Login.css";
+
 function Login() {
 
   const navigate = useNavigate();
@@ -32,34 +34,44 @@ function Login() {
   };
 
   return (
-    <div>
+  <div className="login-page">
 
-      <h1>Login</h1>
+    <div className="login-card">
+
+      <h1>E-Sign Platform</h1>
+
+      <p>
+        Secure document signing made simple
+      </p>
 
       <input
         type="email"
-        placeholder="Email"
+        placeholder="Email Address"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={(e) =>
+          setEmail(e.target.value)
+        }
       />
-
-      <br />
 
       <input
         type="password"
         placeholder="Password"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={(e) =>
+          setPassword(e.target.value)
+        }
       />
 
-      <br />
-
-      <button onClick={handleLogin}>
+      <button
+        onClick={handleLogin}
+      >
         Login
       </button>
 
     </div>
-  );
+
+  </div>
+);
 }
 
 export default Login;

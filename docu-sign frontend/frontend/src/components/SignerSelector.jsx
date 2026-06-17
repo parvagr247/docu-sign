@@ -1,3 +1,5 @@
+import "./styles/SignerSelector.css";
+
 function SignerSelector({
   signers,
   selectedSignerId,
@@ -5,9 +7,14 @@ function SignerSelector({
 }) {
 
   return (
-    <div>
 
-      <h3>Select Signer</h3>
+    <div className="signer-selector">
+
+      <label>
+
+        Active Signer
+
+      </label>
 
       <select
         value={selectedSignerId}
@@ -15,24 +22,30 @@ function SignerSelector({
           onChange(e.target.value)
         }
       >
+
         <option value="">
-          Select Signer
+
+          Choose Signer
+
         </option>
 
         {
           signers.map((signer) => (
+
             <option
               key={signer.id}
               value={signer.id}
             >
               {signer.name}
             </option>
+
           ))
         }
 
       </select>
 
     </div>
+
   );
 }
 

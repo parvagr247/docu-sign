@@ -1,0 +1,80 @@
+.signing-page {
+  max-width: 1400px;
+  margin: auto;
+  padding: 30px;
+  background: #f8fafc;
+}
+
+.signing-header {
+  margin-bottom: 30px;
+}
+
+.signing-header h1 {
+  margin-bottom: 5px;
+}
+
+.signing-info {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.signing-info div {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.progress-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #22c55e;
+}
+
+.signature-section,
+.preview-card,
+.pdf-section {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.preview-card img {
+  width: 250px;
+}
+
+.finish-btn {
+  width: 100%;
+  padding: 16px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.success-card {
+  margin-top: 20px;
+  background: #dcfce7;
+  padding: 25px;
+  border-radius: 12px;
+  text-align: center;
+}

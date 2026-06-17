@@ -1,0 +1,113 @@
+.signature-container {
+
+  background: white;
+
+  border-radius: 18px;
+
+  padding: 24px;
+
+  box-shadow:
+    0 4px 20px rgba(
+      0,
+      0,
+      0,
+      0.05
+    );
+
+  margin-bottom: 24px;
+}
+
+.signature-header {
+
+  text-align: center;
+
+  margin-bottom: 18px;
+}
+
+.signature-header h3 {
+
+  margin: 0;
+
+  color: #0f172a;
+}
+
+.signature-header p {
+
+  margin-top: 6px;
+
+  color: #64748b;
+
+  font-size: 14px;
+}
+
+.signature-canvas {
+
+  width: 100%;
+
+  max-width: 600px;
+
+  display: block;
+
+  margin: 0 auto;
+
+  border: 2px dashed #2563eb;
+
+  border-radius: 14px;
+
+  background: #fafcff;
+}
+
+.signature-actions {
+
+  display: flex;
+
+  justify-content: center;
+
+  gap: 12px;
+
+  margin-top: 18px;
+}
+
+.clear-btn {
+
+  border: 1px solid #dbe3ef;
+
+  background: white;
+
+  color: #475569;
+
+  padding: 10px 20px;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+}
+
+.clear-btn:hover {
+
+  background: #f8fafc;
+}
+
+.save-btn {
+
+  border: none;
+
+  background: #2563eb;
+
+  color: white;
+
+  padding: 10px 22px;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+}
+
+.save-btn:hover {
+
+  background: #1d4ed8;
+}

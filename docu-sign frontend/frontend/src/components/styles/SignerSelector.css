@@ -1,0 +1,53 @@
+.signer-selector {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+.signer-selector label {
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  color: #475569;
+
+  white-space: nowrap;
+}
+
+.signer-selector select {
+
+  min-width: 220px;
+
+  padding: 10px 14px;
+
+  border: 1px solid #dbe3ef;
+
+  border-radius: 10px;
+
+  background: white;
+
+  font-size: 14px;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.signer-selector select:focus {
+
+  outline: none;
+
+  border-color: #2563eb;
+
+  box-shadow:
+    0 0 0 4px rgba(
+      37,
+      99,
+      235,
+      0.12
+    );
+}

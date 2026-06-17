@@ -21,4 +21,6 @@ public interface DocumentService {
     SendSignatureResponse sendSignatureRequest(UUID id);
 
     DownloadedFile downloadSignedDocument(UUID id);
+
+    DownloadedFile downloadCertificate( UUID id );
 }

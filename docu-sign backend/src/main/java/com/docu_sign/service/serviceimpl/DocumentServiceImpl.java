@@ -215,4 +215,24 @@ public class DocumentServiceImpl implements DocumentService {
                 document.getFileSize()
         );
     }
+
+    @Override
+    public DownloadedFile downloadCertificate(UUID id) {
+        User currentUser = currentUserService.getCurrentUser();
+
+        Document document = documentRepository
+                        .findByIdAndUploadedBy(id, currentUser)
+                        .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+
+        if (document.getCertificatePath() == null) {
+            throw new BusinessValidationException( "Certificate not available");
+        }
+
+        return storageService.downloadFile(
+                document.getCertificatePath(),
+                "certificate.pdf",
+                "application/pdf",
+                0
+        );
+    }
 }

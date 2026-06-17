@@ -4,6 +4,8 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 
+import "./styles/PdfViewer.css";
+
 import {
     DndContext,
     PointerSensor,
@@ -322,8 +324,13 @@ function PdfViewer({
 
 
     if (!pdfUrl) {
-        return <p>Loading PDF...</p>;
-    }
+
+  return (
+    <div className="pdf-viewer-loading">
+      Loading PDF...
+    </div>
+  );
+}
 
     return (
 
@@ -372,21 +379,12 @@ function PdfViewer({
                             return (
 
                                 <div
-                                    key={pageNumber}
-                                    style={{
-                                        position: "relative",
-                                        marginBottom: "20px",
-                                        width: "800px"
-                                    }}
-                                >
+    key={pageNumber}
+    className="pdf-page-wrapper"
+>
 
 
-                                    <div
-                                        style={{
-                                            position: "relative",
-                                            width: "800px"
-                                        }}
-                                    >
+                                    <div className="pdf-page-container">
 
                                         <div
                                             onClick={(event) =>

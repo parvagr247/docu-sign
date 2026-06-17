@@ -1,0 +1,104 @@
+.add-signer-form {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 16px;
+}
+
+.form-group {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.form-group label {
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: #475569;
+}
+
+.form-group input {
+
+  width: 100%;
+
+  padding: 12px 14px;
+
+  border: 1px solid #dbe3ef;
+
+  border-radius: 10px;
+
+  font-size: 14px;
+
+  transition: all 0.2s ease;
+
+  box-sizing: border-box;
+
+  background: white;
+}
+
+.form-group input:focus {
+
+  outline: none;
+
+  border-color: #2563eb;
+
+  box-shadow:
+    0 0 0 4px rgba(
+      37,
+      99,
+      235,
+      0.12
+    );
+}
+
+.add-signer-btn {
+
+  border: none;
+
+  border-radius: 10px;
+
+  padding: 12px;
+
+  background: #2563eb;
+
+  color: white;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.add-signer-btn:hover {
+
+  background: #1d4ed8;
+
+  transform: translateY(-1px);
+}
+
+.add-signer-btn:disabled {
+
+  opacity: 0.7;
+
+  cursor: not-allowed;
+}
+
+.form-error {
+
+  color: #dc2626;
+
+  font-size: 13px;
+
+  margin: 0;
+}

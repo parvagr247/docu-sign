@@ -41,6 +41,8 @@ public class Document {
 
     private String signedDocumentPath;
 
+    private String certificatePath;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploaded_by", nullable = false)
     private User uploadedBy;

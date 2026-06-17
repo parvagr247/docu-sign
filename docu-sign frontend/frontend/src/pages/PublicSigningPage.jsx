@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import "./styles/PublicSigningPage.css";
 
 import {
     getSigningSession, saveSignature, completeField, downloadSigningPdf, completeSigning
@@ -31,7 +32,13 @@ function PublicSigningPage() {
         = useState(null);
 
     const [submitting, setSubmitting] =
-        useState(false);
+    useState(false);
+
+const [completed, setCompleted] =
+    useState(false);
+
+const [message, setMessage] =
+    useState("");
 
     const dataUrlToBlob = (
         dataUrl
@@ -166,9 +173,11 @@ function PublicSigningPage() {
                         token
                     );
 
-                alert(
-                    response.message
-                );
+                setCompleted(true);
+
+setMessage(
+    response.message
+);
 
                 const updatedSession =
                     await getSigningSession(
@@ -247,109 +256,182 @@ function PublicSigningPage() {
     }
 
     return (
-        <div>
+  <div className="signing-page">
 
-            <h1>Document Signature</h1>
+    <div className="signing-header">
 
-            <p>
-                Signer: {session.signerName}
-            </p>
+      <h1>
+        Sign Document
+      </h1>
 
-            <p>
-                Email: {session.signerEmail}
-            </p>
+      <p>
+        Review and complete the document below
+      </p>
 
-            <p>
-                Document: {session.documentName}
-            </p>
+    </div>
 
-            <SignatureCanvas
-                onSave={handleSignatureSave}
-            />
+    <div className="signing-info">
 
-            <div
-                style={{
-                    marginTop: "20px",
-                    marginBottom: "20px"
-                }}
-            >
+      <div>
+        <span>Signer</span>
+        <h3>{session.signerName}</h3>
+      </div>
 
-                <strong>
+      <div>
+        <span>Email</span>
+        <h3>{session.signerEmail}</h3>
+      </div>
 
-                    {
-                        fields.filter(
-                            field => field.completed
-                        ).length
-                    }
+      <div>
+        <span>Document</span>
+        <h3>{session.documentName}</h3>
+      </div>
 
-                    /
+    </div>
 
-                    {fields.length}
+    <div className="progress-card">
 
-                    {" "}
-                    completed
+      <h3>
+        Progress
+      </h3>
 
-                </strong>
+      <div className="progress-bar">
 
-            </div>
+        <div
+          className="progress-fill"
+          style={{
+            width:
+              `${(
+                fields.filter(
+                  field =>
+                    field.completed
+                ).length
+                /
+                fields.length
+              ) * 100}%`
+          }}
+        />
 
+      </div>
 
+      <p>
 
-            {signatureDataUrl && (
-                <div>
+        {
+          fields.filter(
+            field =>
+              field.completed
+          ).length
+        }
 
-                    <h3>
-                        Signature Preview
-                    </h3>
+        /
 
-                    {
-                        pdfBlob && (
+        {fields.length}
 
-                            <SigningPdfViewer
+        {" "}
+        fields completed
 
-                                pdfBlob={pdfBlob}
+      </p>
 
-                                fields={fields}
+    </div>
 
-                                signatureImageUrl={
-                                    `http://localhost:9099/api/public/sign/${token}/signature`
-                                }
+    <div className="signature-section">
 
-                                onFieldClick={
-                                    handleFieldClick
-                                }
+      <h2>
+        Create Signature
+      </h2>
 
-                            />
+      <SignatureCanvas
+        onSave={
+          handleSignatureSave
+        }
+      />
 
-                        )
-                    }
+    </div>
 
+    {
+      signatureDataUrl && (
 
+        <div className="preview-card">
 
-                    <img
-                        src={signatureDataUrl}
-                        alt="signature"
-                        style={{
-                            width: 250
-                        }}
-                    />
+          <h2>
+            Signature Preview
+          </h2>
 
-                </div>
-            )}
-
-            <button
-                onClick={
-                    handleFinishSigning
-                }
-            >
-
-                Finish Signing
-
-            </button>
-
+          <img
+            src={signatureDataUrl}
+            alt="signature"
+          />
 
         </div>
-    );
+
+      )
+    }
+
+    {
+      pdfBlob && (
+
+        <div className="pdf-section">
+
+          <h2>
+            Document Preview
+          </h2>
+
+          <SigningPdfViewer
+            pdfBlob={pdfBlob}
+            fields={fields}
+            signatureImageUrl={
+              `http://localhost:9099/api/public/sign/${token}/signature`
+            }
+            onFieldClick={
+              handleFieldClick
+            }
+          />
+
+        </div>
+
+      )
+    }
+
+    {
+      !completed && (
+
+        <button
+          className="finish-btn"
+          onClick={
+            handleFinishSigning
+          }
+          disabled={submitting}
+        >
+          Finish Signing
+        </button>
+
+      )
+    }
+
+    {
+      completed && (
+
+        <div className="success-card">
+
+          <h2>
+            🎉 Document Signed
+          </h2>
+
+          <p>
+            {message}
+          </p>
+
+          <p>
+            You may now close this page.
+          </p>
+
+        </div>
+
+      )
+    }
+
+  </div>
+);
 }
 
 export default PublicSigningPage;

@@ -74,4 +74,15 @@ public class DocumentController {
                 .contentLength(file.fileSize())
                 .body(file.resource());
     }
+
+    @GetMapping("/{id}/certificate")
+    public ResponseEntity<Resource> downloadCertificate( @PathVariable UUID id) {
+
+        DownloadedFile file = documentService.downloadCertificate(id);
+
+        return ResponseEntity.ok()
+                .header( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"certificate.pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(file.resource());
+    }
 }

@@ -2,6 +2,8 @@ import {
   useDraggable
 } from "@dnd-kit/core";
 
+import "./styles/DraggableSignatureField.css";
+
 function DraggableSignatureField({
   field,
   pageWidth,
@@ -10,85 +12,64 @@ function DraggableSignatureField({
   signerName
 }) {
 
-  console.log("RENDER FIELD", field.id);
-
   const {
-  attributes,
-  listeners,
-  setNodeRef,
-  transform
-} = useDraggable({
-  id: field.id
-});
-
-console.log(
-  "transform",
-  transform
-);
-
-console.log(
-  "listeners",
-  listeners
-);
+    attributes,
+    listeners,
+    setNodeRef,
+    transform
+  } = useDraggable({
+    id: field.id
+  });
 
   const scale =
     renderedWidth / pageWidth;
 
- const style = {
-  position: "absolute",
+  const style = {
+    position: "absolute",
 
-  zIndex: 1000,
+    zIndex: 1000,
 
-  touchAction: "none",
+    touchAction: "none",
 
-  left: field.xPosition * scale,
+    left: field.xPosition * scale,
 
-  top:
-    (
-      pageHeight
-      - field.yPosition
-      - field.height
-    ) * scale,
+    top:
+      (
+        pageHeight
+        - field.yPosition
+        - field.height
+      ) * scale,
 
-  width: field.width * scale,
+    width: field.width * scale,
 
-  height: field.height * scale,
+    height: field.height * scale,
 
-  border: "2px dashed red",
-
-  background: "rgba(255,0,0,0.1)",
-
-  display: "flex",
-
-  flexDirection: "column",
-
-  alignItems: "center",
-
-  justifyContent: "center",
-
-  cursor: "move",
-
-  transform:
-    transform
-      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
-      : undefined
-};
+    transform:
+      transform
+        ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+        : undefined
+  };
 
   return (
-    <div
-  ref={setNodeRef}
-  style={style}
-  {...listeners}
-  {...attributes}
->
-      <strong>
-        {signerName}
-      </strong>
 
-      <span>
-        SIGN HERE
-      </span>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="signature-field"
+      {...listeners}
+      {...attributes}
+    >
+
+      <div className="signature-field-name">
+        {signerName}
+      </div>
+
+      <div className="signature-field-text">
+        Sign Here
+      </div>
+
     </div>
+
   );
 }
 

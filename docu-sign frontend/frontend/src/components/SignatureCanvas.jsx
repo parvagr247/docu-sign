@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import SignaturePad from "signature_pad";
 
+import "./styles/SignatureCanvas.css";
+
 function SignatureCanvas({
   onSave
 }) {
@@ -31,9 +33,11 @@ function SignatureCanvas({
     if (
       signaturePadRef.current.isEmpty()
     ) {
+
       alert(
         "Please draw a signature"
       );
+
       return;
     }
 
@@ -46,27 +50,39 @@ function SignatureCanvas({
   };
 
   return (
-    <div>
+
+    <div className="signature-container">
+
+      <div className="signature-header">
+
+        <h3>
+          Draw Your Signature
+        </h3>
+
+        <p>
+          Use your mouse or touchpad
+        </p>
+
+      </div>
 
       <canvas
         ref={canvasRef}
-        width={500}
-        height={200}
-        style={{
-          border:
-            "1px solid #ccc"
-        }}
+        width={600}
+        height={220}
+        className="signature-canvas"
       />
 
-      <div>
+      <div className="signature-actions">
 
         <button
+          className="clear-btn"
           onClick={handleClear}
         >
           Clear
         </button>
 
         <button
+          className="save-btn"
           onClick={handleSave}
         >
           Save Signature
@@ -75,6 +91,7 @@ function SignatureCanvas({
       </div>
 
     </div>
+
   );
 }
 

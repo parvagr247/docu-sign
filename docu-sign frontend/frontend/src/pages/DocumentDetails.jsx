@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import "./styles/DocumentDetails.css";
+import Layout from "../components/Layout";
 
 import {
     getDocumentById,
@@ -104,24 +106,24 @@ function DocumentDetails() {
 
     const loadFields = async () => {
 
-    try {
+        try {
 
-        const data =
-            await getSignatureFields(id);
+            const data =
+                await getSignatureFields(id);
 
-        console.log(
-            "FIELDS FROM SERVER",
-            JSON.stringify(data, null, 2)
-        );
+            console.log(
+                "FIELDS FROM SERVER",
+                JSON.stringify(data, null, 2)
+            );
 
-        setFields(data);
+            setFields(data);
 
-    } catch (error) {
+        } catch (error) {
 
-        console.error(error);
+            console.error(error);
 
-    }
-};
+        }
+    };
 
     useEffect(() => {
 
@@ -175,236 +177,182 @@ function DocumentDetails() {
     );
 
     return (
-        <div>
+        <Layout>
+            <div className="document-details">
 
-            <Link to="/documents">
-                ← Back to Documents
-            </Link>
+                <div className="document-layout">
 
-            <h1>Document Details</h1>
+                    <div className="pdf-section">
 
-            <hr />
+                        <div className="pdf-header">
 
-            <h2>Document Information</h2>
+    <h2>Document Preview</h2>
 
-            <hr />
+    <SignerSelector
+        signers={signers}
+        selectedSignerId={selectedSignerId}
+        onChange={setSelectedSignerId}
+    />
 
-            <h2>PDF Preview</h2>
+</div>
 
-            <SignerSelector
-                signers={signers}
-                selectedSignerId={selectedSignerId}
-                onChange={setSelectedSignerId}
-            />
+                        <div className="pdf-container">
 
-            <PdfViewer
-                pdfBlob={pdfBlob}
-                documentId={id}
-                selectedSignerId={selectedSignerId}
-                fields={fields}
-                onFieldCreated={loadFields}
-                documentStatus={document.status}
-                signers={signers}
-                placementMode={placementMode}
-            />
+                            <PdfViewer
+                                pdfBlob={pdfBlob}
+                                documentId={id}
+                                selectedSignerId={selectedSignerId}
+                                fields={fields}
+                                onFieldCreated={loadFields}
+                                documentStatus={document.status}
+                                signers={signers}
+                                placementMode={placementMode}
+                            />
 
-            <hr />
-
-            <p>
-                <strong>Name:</strong>
-                {" "}
-                {document.originalFileName}
-            </p>
-
-            <p>
-                <strong>Status:</strong>
-                {" "}
-                {document.status}
-            </p>
-
-            <p>
-                <strong>File Size:</strong>
-                {" "}
-                {document.fileSize}
-                {" "}
-                bytes
-            </p>
-
-            <p>
-                <strong>Uploaded At:</strong>
-                {" "}
-                {document.uploadedAt}
-            </p>
-
-            <hr />
-
-            <hr />
-
-            <AddSignerForm
-                documentId={id}
-                onSignerAdded={loadSigners}
-            />
-
-            <hr />
-
-            <h2>Signers</h2>
-
-            {signers.length === 0 ? (
-                <p>No signers added.</p>
-            ) : (
-                signers.map((signer) => (
-                    <div
-                        key={signer.id}
-                        style={{
-                            border: "1px solid #ccc",
-                            padding: "10px",
-                            marginBottom: "10px"
-                        }}
-                    >
-                        <p>
-                            <strong>Name:</strong>
-                            {" "}
-                            {signer.name}
-                        </p>
-
-                        <p>
-                            <strong>Email:</strong>
-                            {" "}
-                            {signer.email}
-                        </p>
-
-                        <p>
-                            <strong>Status:</strong>
-                            {" "}
-                            {signer.status}
-                        </p>
-                    </div>
-                ))
-            )}
-
-            <hr />
-
-            <h2>Signature Fields</h2>
-
-            {fields.length === 0 ? (
-                <p>No signature fields configured.</p>
-            ) : (
-                fields.map((field) => (
-                    <div
-                        key={field.id}
-                        style={{
-                            border: "1px solid #ccc",
-                            padding: "10px",
-                            marginBottom: "10px"
-                        }}
-                    >
-                        <p>
-                            <strong>Page:</strong>
-                            {" "}
-                            {field.pageNumber}
-                        </p>
-
-                        <p>
-                            <strong>X:</strong>
-                            {" "}
-                            {field.xPosition}
-                        </p>
-
-                        <p>
-                            <strong>Y:</strong>
-                            {" "}
-                            {field.yPosition}
-                        </p>
-
-                        <p>
-                            <strong>Width:</strong>
-                            {" "}
-                            {field.width}
-                        </p>
-
-                        <p>
-                            <strong>Height:</strong>
-                            {" "}
-                            {field.height}
-                        </p>
-
-                        <p>
-                            <strong>Required:</strong>
-                            {" "}
-                            {field.required
-                                ? "Yes"
-                                : "No"}
-                        </p>
+                        </div>
 
                     </div>
-                ))
-            )}
 
-            <hr />
+                    <div className="sidebar-section">
 
-            <h2>Actions</h2>
+                        <div className="sidebar-card">
 
-            <button
-                onClick={handleSendRequest}
-                disabled={
-                    sending ||
-                    document.status !== "UPLOADED"
-                }
-            >
-                {
-                    sending
-                        ? "Sending..."
-                        : "Send Signature Request"
-                }
-            </button>
+                            <div className="document-summary">
 
-            <button
-                onClick={() =>
-                    setPlacementMode(
-                        !placementMode
-                    )
-                }
-            >
-                {
-                    placementMode
-                        ? "Finish Placement"
-                        : "Place Signature Fields"
-                }
-            </button>
+  <div className="document-file-name">
+    📄 {document.originalFileName}
+  </div>
 
-            <button
-                onClick={async () => {
+  <span
+    className={`status-badge status-${document.status.toLowerCase()}`}
+  >
+    {document.status}
+  </span>
 
-                    try {
+  <div className="upload-date">
+    Uploaded on {" "}
+    {new Date(document.uploadedAt)
+      .toLocaleDateString()}
+  </div>
 
-                        const blob =
-                            await downloadDocumentBlob(id);
+</div>
 
-                        console.log(blob);
+                            <div className="overview-grid">
 
-                    } catch (error) {
+                                <div className="overview-item">
+                                    <span>File Size</span>
+                                    <h3>
+                                        {Math.round(document.fileSize / 1024)}
+                                        {" "}KB
+                                    </h3>
+                                </div>
 
-                        console.log("FULL ERROR");
-                        console.log(error);
+                                <div className="overview-item">
+                                    <span>Signers</span>
+                                    <h3>{signers.length}</h3>
+                                </div>
 
-                        console.log("RESPONSE");
-                        console.log(error.response);
+                                <div className="overview-item">
+                                    <span>Fields</span>
+                                    <h3>{fields.length}</h3>
+                                </div>
 
-                        console.log("DATA");
-                        console.log(error.response?.data);
+                            </div>
 
-                    }
+                        </div>
 
-                }}
-            >
-                Test Blob Download
-            </button>
+                        <div className="sidebar-card">
 
-            <hr />
+                            <h3>Actions</h3>
+
+                            <div className="sidebar-actions">
+
+                                <button
+                                    onClick={handleSendRequest}
+                                    disabled={
+                                        sending ||
+                                        document.status !== "UPLOADED"
+                                    }
+                                >
+                                    {
+                                        sending
+                                            ? "Sending..."
+                                            : "Send Signature Request"
+                                    }
+                                </button>
+
+                                <button
+                                    onClick={() =>
+                                        setPlacementMode(
+                                            !placementMode
+                                        )
+                                    }
+                                >
+                                    {
+                                        placementMode
+                                            ? "Finish Placement"
+                                            : "Place Fields"
+                                    }
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <div className="sidebar-card">
 
 
 
-        </div>
+                            <AddSignerForm
+                                documentId={id}
+                                onSignerAdded={loadSigners}
+                            />
+
+                        </div>
+
+                        <div className="sidebar-card">
+
+                            <h3>Signers</h3>
+
+                            <div className="signer-grid">
+
+                                {
+                                    signers.map((signer) => (
+
+                                        <div
+                                            key={signer.id}
+                                            className="signer-card"
+                                        >
+
+                                            <h4>
+                                                {signer.name}
+                                            </h4>
+
+                                            <p>
+                                                {signer.email}
+                                            </p>
+
+                                            <span
+                                                className={`status-badge status-${signer.status.toLowerCase()}`}
+                                            >
+                                                {signer.status}
+                                            </span>
+
+                                        </div>
+
+                                    ))
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </Layout>
     );
 }
 

@@ -1,3 +1,5 @@
+import "./styles/SignatureFieldOverlay.css";
+
 function SignatureFieldOverlay({
   field,
   pageWidth,
@@ -9,54 +11,49 @@ function SignatureFieldOverlay({
   const scale =
     renderedWidth / pageWidth;
 
+  const style = {
+
+    position: "absolute",
+
+    left:
+      field.xPosition * scale,
+
+    top:
+      (
+        pageHeight -
+        field.yPosition -
+        field.height
+      ) * scale,
+
+    width:
+      field.width * scale,
+
+    height:
+      field.height * scale
+
+  };
+
   return (
+
     <div
-      style={{
-        position: "absolute",
-
-        left:
-          field.xPosition * scale,
-
-        top:
-          (
-            pageHeight -
-            field.yPosition -
-            field.height
-          ) * scale,
-
-        width:
-          field.width * scale,
-
-        height:
-          field.height * scale,
-
-        border:
-          "2px dashed red",
-
-        background:
-          "rgba(255,0,0,0.1)",
-
-        display: "flex",
-
-        flexDirection: "column",
-
-        alignItems: "center",
-
-        justifyContent: "center",
-
-        fontSize: "10px",
-
-        pointerEvents: "none"
-      }}
+      className="signature-overlay"
+      style={style}
     >
-      <strong>
-        {signerName}
-      </strong>
 
-      <span>
-        SIGN HERE
-      </span>
+      <div className="signature-overlay-name">
+
+        {signerName}
+
+      </div>
+
+      <div className="signature-overlay-text">
+
+        Sign Here
+
+      </div>
+
     </div>
+
   );
 }
 

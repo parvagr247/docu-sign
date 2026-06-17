@@ -5,6 +5,9 @@ import {
   uploadDocument
 } from "../services/documentService";
 
+import "./styles/Documents.css";
+import Layout from "../components/Layout";
+
 function Documents() {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,83 +74,173 @@ function Documents() {
   }
 
   return (
-    <div>
+  <Layout>
+  <div className="documents-page">
 
-      <Link to="/dashboard">
-        ← Back to Dashboard
-      </Link>
+    <div className="documents-header">
 
-      <h1>Documents</h1>
+      <div className="documents-stats">
 
-      <hr />
+  <div className="stat-card">
+    <h3>{documents.length}</h3>
+    <p>Total Documents</p>
+  </div>
 
-      <h2>Upload Document</h2>
+  <div className="stat-card">
+    <h3>
+      {
+        documents.filter(
+          d => d.status === "SIGNED"
+        ).length
+      }
+    </h3>
+    <p>Completed</p>
+  </div>
 
-      <form onSubmit={handleUpload}>
+  <div className="stat-card">
+    <h3>
+      {
+        documents.filter(
+          d => d.status === "PARTIALLY_SIGNED"
+        ).length
+      }
+    </h3>
+    <p>In Progress</p>
+  </div>
+
+  <div className="stat-card">
+    <h3>
+      {
+        documents.filter(
+          d => d.status === "UPLOADED"
+        ).length
+      }
+    </h3>
+    <p>Drafts</p>
+  </div>
+
+</div>
+
+      <div>
+
+        <h1>Documents</h1>
+
+        <p>
+          Manage and track all signature workflows
+        </p>
+      </div>
+
+    </div>
+
+    <div className="upload-card">
+
+      <div className="upload-header">
+
+  <h2>📄 Upload New Document</h2>
+
+  <p>
+    Upload a PDF and start collecting signatures.
+  </p>
+
+</div>
+
+      <form
+        onSubmit={handleUpload}
+        className="upload-form"
+      >
 
         <input
           type="file"
           accept="application/pdf"
           onChange={(e) =>
-            setSelectedFile(e.target.files[0])
+            setSelectedFile(
+              e.target.files[0]
+            )
           }
         />
 
         <button
           type="submit"
           disabled={uploading}
-          style={{ marginLeft: "10px" }}
         >
-          {uploading ? "Uploading..." : "Upload"}
+          {
+            uploading
+              ? "Uploading..."
+              : "Upload PDF"
+          }
         </button>
 
       </form>
 
-      {uploadError && (
-        <p style={{ color: "red" }}>
-          {uploadError}
-        </p>
-      )}
-
-      <hr />
-
-      {documents.length === 0 ? (
-        <p>No documents found.</p>
-      ) : 
-            ( documents.map((document) => (
-        <Link
-            key={document.id}
-            to={`/documents/${document.id}`}
-            style={{
-            textDecoration: "none",
-            color: "inherit"
-            }}
-        >
-            <div
-            style={{
-                border: "1px solid #ccc",
-                padding: "10px",
-                marginBottom: "10px",
-                borderRadius: "5px",
-                cursor: "pointer"
-            }}
-            >
-            <p>
-                <strong>File:</strong>{" "}
-                {document.originalFileName}
-            </p>
-
-            <p>
-                <strong>Status:</strong>{" "}
-                {document.status}
-            </p>
-            </div>
-        </Link>
-        ))
-      )}
+      {
+        uploadError && (
+          <p className="error-text">
+            {uploadError}
+          </p>
+        )
+      }
 
     </div>
-  );
+
+    <div className="documents-grid">
+
+      {
+        documents.length === 0
+          ? (
+            <div className="empty-state">
+
+              <h3>No Documents Yet</h3>
+
+              <p>
+                Upload your first PDF to begin.
+              </p>
+
+            </div>
+          )
+          : (
+            documents.map((document) => (
+
+              <Link
+  key={document.id}
+  to={`/documents/${document.id}`}
+  className="document-card"
+>
+
+  <div className="document-icon">
+    📄
+  </div>
+
+  <h3>
+    {document.originalFileName}
+  </h3>
+
+  <div className="document-meta">
+
+    <span
+      className={`status-badge status-${document.status.toLowerCase()}`}
+    >
+      {document.status}
+    </span>
+
+  </div>
+
+  <div className="document-footer">
+
+    Open →
+
+  </div>
+
+</Link>
+
+            ))
+          )
+      }
+
+    </div>
+
+  </div>
+  </Layout>
+);
 }
 
 export default Documents;

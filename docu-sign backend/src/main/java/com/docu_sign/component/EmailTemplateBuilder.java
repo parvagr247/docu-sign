@@ -61,4 +61,47 @@ public class EmailTemplateBuilder {
                         signingUrl
                 );
     }
+
+    public String buildDocumentCompletedEmail(
+
+            String recipientName,
+            String documentName
+
+    ) {
+
+        return """
+            <html>
+                <body>
+
+                    <h2>Document Signing Completed</h2>
+
+                    <p>Hello %s,</p>
+
+                    <p>
+                        Your document has been fully signed.
+                    </p>
+
+                    <p>
+                        <strong>Document:</strong> %s
+                    </p>
+
+                    <p>
+                        The signed PDF and completion certificate
+                        are now available for download.
+                    </p>
+
+                    <br>
+
+                    <p>
+                        Thank you.
+                    </p>
+
+                </body>
+            </html>
+            """
+                .formatted(
+                        recipientName,
+                        documentName
+                );
+    }
 }

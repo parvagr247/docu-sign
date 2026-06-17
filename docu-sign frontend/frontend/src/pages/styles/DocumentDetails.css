@@ -1,0 +1,429 @@
+.document-details {
+
+  max-width: 1700px;
+
+  margin: 0 auto;
+
+  padding: 24px;
+
+  background: #f8fafc;
+
+  min-height: 100vh;
+}
+
+/* ===========================
+   MAIN LAYOUT
+=========================== */
+
+.document-layout {
+
+  display: grid;
+
+  grid-template-columns: 62% 38%;
+
+  padding-left: 100px;
+
+  padding-right: 100px;
+
+  gap: 24px;
+
+  align-items: start;
+}
+
+/* ===========================
+   PDF SECTION
+=========================== */
+
+.pdf-section {
+
+  background: white;
+
+  border-radius: 18px;
+
+  padding: 24px;
+
+  box-shadow:
+    0 6px 24px rgba(
+      15,
+      23,
+      42,
+      0.06
+    );
+}
+
+.pdf-header {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 20px;
+}
+
+.pdf-header h2 {
+
+  margin: 0;
+
+  font-size: 24px;
+
+  font-weight: 700;
+
+  color: #0f172a;
+}
+
+.pdf-container {
+
+  background: #f1f5f9;
+
+  border-radius: 16px;
+
+  padding: 16px;
+
+  overflow: auto;
+}
+
+/* ===========================
+   SIDEBAR
+=========================== */
+
+.sidebar-section {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 18px;
+
+  position: sticky;
+
+  top: 80px;
+}
+
+.sidebar-card {
+
+  background: white;
+
+  border-radius: 18px;
+
+  padding: 20px;
+
+  box-shadow:
+    0 6px 24px rgba(
+      15,
+      23,
+      42,
+      0.06
+    );
+}
+
+.sidebar-card h3 {
+
+  margin-top: 0;
+
+  margin-bottom: 16px;
+
+  color: #0f172a;
+}
+
+/* ===========================
+   DOCUMENT SUMMARY
+=========================== */
+
+.document-summary {
+
+  text-align: center;
+
+  padding-bottom: 20px;
+
+  margin-bottom: 20px;
+
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.document-file-name {
+
+  font-size: 18px;
+
+  font-weight: 700;
+
+  line-height: 1.5;
+
+  color: #0f172a;
+
+  margin-bottom: 14px;
+
+  word-break: break-word;
+}
+
+.upload-date {
+
+  margin-top: 12px;
+
+  font-size: 13px;
+
+  color: #64748b;
+}
+
+/* ===========================
+   STATUS
+=========================== */
+
+.status-badge {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 8px 16px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.5px;
+}
+
+.status-signed {
+
+  background: #dcfce7;
+
+  color: #166534;
+}
+
+.status-uploaded {
+
+  background: #dbeafe;
+
+  color: #1d4ed8;
+}
+
+.status-viewed {
+
+  background: #dbeafe;
+
+  color: #1e40af;
+}
+
+.status-pending_signature {
+
+  background: #fef3c7;
+
+  color: #92400e;
+}
+
+.status-partially_signed {
+
+  background: #fed7aa;
+
+  color: #9a3412;
+}
+
+/* ===========================
+   OVERVIEW
+=========================== */
+
+.overview-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 12px;
+}
+
+.overview-item {
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 12px;
+
+  padding: 16px;
+
+  text-align: center;
+}
+
+.overview-item span {
+
+  display: block;
+
+  font-size: 12px;
+
+  color: #64748b;
+
+  margin-bottom: 8px;
+}
+
+.overview-item h3 {
+
+  margin: 0;
+
+  font-size: 24px;
+
+  font-weight: 700;
+
+  color: #2563eb;
+}
+
+/* ===========================
+   ACTIONS
+=========================== */
+
+.sidebar-actions {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+.sidebar-actions button {
+
+  width: 100%;
+
+  border: none;
+
+  border-radius: 10px;
+
+  padding: 12px;
+
+  background: #2563eb;
+
+  color: white;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.sidebar-actions button:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 20px rgba(
+      37,
+      99,
+      235,
+      0.25
+    );
+}
+
+.sidebar-actions button:disabled {
+
+  opacity: 0.6;
+
+  cursor: not-allowed;
+}
+
+/* ===========================
+   SIGNERS
+=========================== */
+
+.signer-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap: 16px;
+}
+
+.signer-card {
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 12px;
+
+  padding: 16px;
+
+  text-align: center;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.signer-card:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 6px 16px rgba(
+      0,
+      0,
+      0,
+      0.06
+    );
+}
+
+.signer-card h4 {
+
+  margin: 0 0 8px;
+}
+
+.signer-card p {
+
+  margin: 0 0 12px;
+
+  color: #64748b;
+
+  font-size: 13px;
+
+  word-break: break-word;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media (max-width: 1200px) {
+
+  .document-layout {
+
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-section {
+
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .overview-grid {
+
+    grid-template-columns: 1fr;
+  }
+
+  .pdf-header {
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 12px;
+  }
+
+  .document-details {
+
+    padding: 16px;
+  }
+}

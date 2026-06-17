@@ -2,6 +2,7 @@ package com.docu_sign.service.serviceimpl;
 
 
 import com.docu_sign.component.EmailTemplateBuilder;
+import com.docu_sign.dto.DocumentCompletedEmail;
 import com.docu_sign.dto.SignatureRequestEmail;
 import com.docu_sign.exception.EmailDeliveryException;
 import com.docu_sign.service.EmailService;
@@ -59,6 +60,67 @@ public class EmailServiceImpl implements EmailService {
             System.out.println("EMAIL STEP 6");
 
             throw new EmailDeliveryException("Failed to send email to "  + email.recipientEmail(), ex );
+        }
+    }
+
+    @Override
+    public void sendDocumentCompletedEmail(
+            DocumentCompletedEmail email
+    ) {
+
+        System.out.println("COMPLETION EMAIL METHOD HIT");
+
+        try {
+
+            String htmlContent =
+                    emailTemplateBuilder
+                            .buildDocumentCompletedEmail(
+
+                                    email.recipientName(),
+                                    email.documentName()
+
+                            );
+
+            MimeMessage message =
+                    mailSender.createMimeMessage();
+
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(
+                            message,
+                            true
+                    );
+
+            helper.setTo(
+                    email.recipientEmail()
+            );
+
+            helper.setSubject(
+                    "Document Completed: "
+                            + email.documentName()
+            );
+
+            helper.setText(
+                    htmlContent,
+                    true
+            );
+
+            System.out.println("SENDING COMPLETION EMAIL TO = "
+                    + email.recipientEmail());
+
+            mailSender.send(
+                    message
+            );
+
+        } catch (
+                MessagingException
+                |
+                MailException ex
+        ) {
+
+            throw new EmailDeliveryException(
+                    "Failed to send completion email",
+                    ex
+            );
         }
     }
 }
