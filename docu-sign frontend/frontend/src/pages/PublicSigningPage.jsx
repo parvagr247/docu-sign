@@ -380,7 +380,7 @@ setMessage(
             pdfBlob={pdfBlob}
             fields={fields}
             signatureImageUrl={
-              `http://localhost:9099/api/public/sign/${token}/signature`
+              `${import.meta.env.VITE_API_URL}/public/sign/${token}/signature`
             }
             onFieldClick={
               handleFieldClick
