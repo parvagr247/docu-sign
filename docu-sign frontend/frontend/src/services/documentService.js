@@ -68,7 +68,7 @@ export const sendSignatureRequest =
 export const getDocumentDownloadUrl =
   (documentId) => {
 
-    return `http://localhost:9099/api/documents/${documentId}/download`;
+    return `${import.meta.env.VITE_API_URL}/documents/${documentId}/download`;
 };
 
 export const downloadDocumentBlob = async (
