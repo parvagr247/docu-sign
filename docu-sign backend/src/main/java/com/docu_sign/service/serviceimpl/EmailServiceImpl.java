@@ -1,75 +1,54 @@
 package com.docu_sign.service.serviceimpl;
 
-
 import com.docu_sign.component.EmailTemplateBuilder;
 import com.docu_sign.dto.DocumentCompletedEmail;
 import com.docu_sign.dto.SignatureRequestEmail;
 import com.docu_sign.exception.EmailDeliveryException;
 import com.docu_sign.service.EmailService;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-    private final JavaMailSender mailSender;
     private final EmailTemplateBuilder emailTemplateBuilder;
 
-    @Override
-    public void sendSignatureRequestEmail(SignatureRequestEmail email){
+    @Value("${resend.api.key}")
+    private String apiKey;
 
-        System.out.println("EMAIL SERVICE STARTED");
+    private final OkHttpClient client =
+            new OkHttpClient();
+
+    @Override
+    public void sendSignatureRequestEmail(
+            SignatureRequestEmail email
+    ) {
 
         try {
 
-            System.out.println("EMAIL STEP 1");
-
             String htmlContent =
-                    emailTemplateBuilder.buildSignatureRequestEmail(
-                            email.recipientName(),
-                            email.documentName(),
-                            email.signingUrl()
-                    );
+                    emailTemplateBuilder
+                            .buildSignatureRequestEmail(
+                                    email.recipientName(),
+                                    email.documentName(),
+                                    email.signingUrl()
+                            );
 
-            System.out.println("EMAIL STEP 2");
+            sendEmail(
+                    email.recipientEmail(),
+                    "Signature Requested: "
+                            + email.documentName(),
+                    htmlContent
+            );
 
-            MimeMessage message = mailSender.createMimeMessage();
-
-            MimeMessageHelper helper = new MimeMessageHelper( message, true );
-
-            System.out.println("EMAIL STEP 3");
-
-            helper.setTo( email.recipientEmail() );
-            helper.setSubject( "Signature Requested: " + email.documentName() );
-            helper.setText( htmlContent, true);
-
-            System.out.println("EMAIL STEP 4");
-
-            mailSender.send(message);
-
-            System.out.println("EMAIL STEP 5");
-
-        } catch (MessagingException | MailException ex) {
-
-            System.out.println("EMAIL STEP 6");
+        } catch (Exception ex) {
 
             ex.printStackTrace();
-
-            System.out.println(
-                    "ERROR TYPE = "
-                            + ex.getClass().getName()
-            );
-
-            System.out.println(
-                    "ERROR MESSAGE = "
-                            + ex.getMessage()
-            );
 
             throw new EmailDeliveryException(
                     "Failed to send email to "
@@ -84,59 +63,113 @@ public class EmailServiceImpl implements EmailService {
             DocumentCompletedEmail email
     ) {
 
-        System.out.println("COMPLETION EMAIL METHOD HIT");
-
         try {
 
             String htmlContent =
                     emailTemplateBuilder
                             .buildDocumentCompletedEmail(
-
                                     email.recipientName(),
                                     email.documentName()
-
                             );
 
-            MimeMessage message =
-                    mailSender.createMimeMessage();
-
-            MimeMessageHelper helper =
-                    new MimeMessageHelper(
-                            message,
-                            true
-                    );
-
-            helper.setTo(
-                    email.recipientEmail()
-            );
-
-            helper.setSubject(
+            sendEmail(
+                    email.recipientEmail(),
                     "Document Completed: "
-                            + email.documentName()
+                            + email.documentName(),
+                    htmlContent
             );
 
-            helper.setText(
-                    htmlContent,
-                    true
-            );
+        } catch (Exception ex) {
 
-            System.out.println("SENDING COMPLETION EMAIL TO = "
-                    + email.recipientEmail());
-
-            mailSender.send(
-                    message
-            );
-
-        } catch (
-                MessagingException
-                |
-                MailException ex
-        ) {
+            ex.printStackTrace();
 
             throw new EmailDeliveryException(
                     "Failed to send completion email",
                     ex
             );
+        }
+    }
+
+    private void sendEmail(
+            String recipientEmail,
+            String subject,
+            String htmlContent
+    ) throws IOException {
+
+        String escapedHtml =
+                htmlContent
+                        .replace("\\", "\\\\")
+                        .replace("\"", "\\\"")
+                        .replace("\n", "")
+                        .replace("\r", "");
+
+        String json =
+                """
+                {
+                  "from":"DocuSign <onboarding@resend.dev>",
+                  "to":["%s"],
+                  "subject":"%s",
+                  "html":"%s"
+                }
+                """
+                        .formatted(
+                                recipientEmail,
+                                subject,
+                                escapedHtml
+                        );
+
+        RequestBody body =
+                RequestBody.create(
+                        json,
+                        MediaType.parse(
+                                "application/json"
+                        )
+                );
+
+        Request request =
+                new Request.Builder()
+                        .url(
+                                "https://api.resend.com/emails"
+                        )
+                        .addHeader(
+                                "Authorization",
+                                "Bearer " + apiKey
+                        )
+                        .addHeader(
+                                "Content-Type",
+                                "application/json"
+                        )
+                        .post(body)
+                        .build();
+
+        try (
+                Response response =
+                        client.newCall(request)
+                                .execute()
+        ) {
+
+            String responseBody =
+                    response.body() != null
+                            ? response.body().string()
+                            : "";
+
+            System.out.println(
+                    "RESEND STATUS = "
+                            + response.code()
+            );
+
+            System.out.println(
+                    "RESEND RESPONSE = "
+                            + responseBody
+            );
+
+            if (!response.isSuccessful()) {
+
+                throw new RuntimeException(
+                        "Resend API Error: "
+                                + responseBody
+                );
+            }
         }
     }
 }
