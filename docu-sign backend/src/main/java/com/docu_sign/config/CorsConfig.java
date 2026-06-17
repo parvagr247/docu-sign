@@ -27,7 +27,7 @@ public class CorsConfig {
         configuration.setExposedHeaders(
                 List.of("*")
         );
-        
+
         configuration.setAllowedHeaders(
                 List.of("*")
         );
