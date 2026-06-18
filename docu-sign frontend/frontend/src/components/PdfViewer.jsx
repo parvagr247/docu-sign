@@ -64,6 +64,12 @@ function PdfViewer({
     const [lastDragTime, setLastDragTime] =
         useState(0);
 
+    const [localFields, setLocalFields] = useState(fields);
+
+    useEffect(() => {
+        setLocalFields(fields);
+    }, [fields]);
+
     useEffect(() => {
 
         if (!pdfBlob) return;
@@ -232,7 +238,7 @@ function PdfViewer({
         console.log("ACTIVE", active.id);
         console.log("DELTA", delta);
 
-        const field = fields.find(
+        const field = localFields.find(
             f => f.id === active.id
         );
 
@@ -290,9 +296,16 @@ function PdfViewer({
             }
         );
 
+        // Optimistically update coordinates in local state
+        setLocalFields(prev =>
+            prev.map(f =>
+                f.id === field.id
+                    ? { ...f, xPosition: newX, yPosition: newY }
+                    : f
+            )
+        );
+
         try {
-
-
 
             const response =
                 await updateSignatureField(
@@ -317,6 +330,8 @@ function PdfViewer({
         } catch (error) {
 
             console.error(error);
+            // Revert back on error
+            setLocalFields(fields);
 
         }
     };
@@ -401,7 +416,7 @@ function PdfViewer({
                                         </div>
 
                                         {
-                                            fields
+                                            localFields
                                                 ?.filter(
                                                     field =>
                                                         field.pageNumber ===
