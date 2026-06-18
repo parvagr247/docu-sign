@@ -6,6 +6,7 @@ import com.docu_sign.dto.SignatureRequestEmail;
 import com.docu_sign.exception.EmailDeliveryException;
 import com.docu_sign.service.EmailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class EmailServiceImpl implements EmailService {
             new OkHttpClient();
 
     @Override
+    @Async
     public void sendSignatureRequestEmail(
             SignatureRequestEmail email
     ) {
@@ -59,6 +61,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
+    @Async
     public void sendDocumentCompletedEmail(
             DocumentCompletedEmail email
     ) {

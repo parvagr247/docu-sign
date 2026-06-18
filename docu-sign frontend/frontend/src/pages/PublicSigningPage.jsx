@@ -206,16 +206,14 @@ setMessage(
 
             try {
 
-                const data =
-                    await getSigningSession(token);
+                const [sessionData, pdfData] = await Promise.all([
+                    getSigningSession(token),
+                    downloadSigningPdf(token)
+                ]);
 
-                setSession(data);
-                setFields(data.fields);
-
-                const pdf =
-                    await downloadSigningPdf(token);
-
-                setPdfBlob(pdf);
+                setSession(sessionData);
+                setFields(sessionData.fields);
+                setPdfBlob(pdfData);
 
             } catch (error) {
 
