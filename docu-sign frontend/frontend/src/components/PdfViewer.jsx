@@ -24,6 +24,19 @@ import {
 pdfjs.GlobalWorkerOptions.workerSrc =
     `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
+const getPageOriginalDimensions = (page) => {
+  if (page.originalWidth && page.originalHeight) {
+    return { width: page.originalWidth, height: page.originalHeight };
+  }
+  if (page.view) {
+    return {
+      width: page.view[2] - page.view[0],
+      height: page.view[3] - page.view[1]
+    };
+  }
+  return { width: page.width, height: page.height };
+};
+
 function PdfViewer({
     pdfBlob,
     documentId,
@@ -65,6 +78,16 @@ function PdfViewer({
         useState(0);
 
     const [localFields, setLocalFields] = useState(fields);
+
+    const [pageDimensionsMap, setPageDimensionsMap] = useState({});
+
+    const handlePageLoadSuccess = (page) => {
+        const dims = getPageOriginalDimensions(page);
+        setPageDimensionsMap(prev => ({
+            ...prev,
+            [page.pageNumber]: dims
+        }));
+    };
 
     useEffect(() => {
         setLocalFields(fields);
@@ -170,8 +193,9 @@ function PdfViewer({
           dynamically from PDF.js.
         */
 
-        const pdfWidth = 612;
-        const pdfHeight = 792;
+        const dims = pageDimensionsMap[pageNumber] || { width: 612, height: 792 };
+        const pdfWidth = dims.width;
+        const pdfHeight = dims.height;
 
         const scaleX =
             pdfWidth / displayedWidth;
@@ -277,7 +301,9 @@ function PdfViewer({
 
 
 
-        const pageWidth = 612;
+        const dims = pageDimensionsMap[field.pageNumber] || { width: 612, height: 792 };
+        const pageWidth = dims.width;
+        const pageHeight = dims.height;
         const renderedWidth = 800;
 
         const scale =
@@ -427,6 +453,7 @@ function PdfViewer({
                                             <Page
                                                 pageNumber={pageNumber}
                                                 width={800}
+                                                onLoadSuccess={handlePageLoadSuccess}
                                             />
                                         </div>
 
@@ -451,8 +478,8 @@ function PdfViewer({
                                                         <DraggableSignatureField
                                                             key={field.id}
                                                             field={field}
-                                                            pageWidth={612}
-                                                            pageHeight={792}
+                                                            pageWidth={pageDimensionsMap[pageNumber]?.width || 612}
+                                                            pageHeight={pageDimensionsMap[pageNumber]?.height || 792}
                                                             renderedWidth={800}
                                                             signerName={
                                                                 signer?.name ||
