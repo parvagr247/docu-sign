@@ -12,13 +12,16 @@ function DraggableSignatureField({
   signerName
 }) {
 
+  const isSaving = field.id.toString().startsWith("temp-");
+
   const {
     attributes,
     listeners,
     setNodeRef,
     transform
   } = useDraggable({
-    id: field.id
+    id: field.id,
+    disabled: isSaving
   });
 
   const scale =
@@ -30,6 +33,8 @@ function DraggableSignatureField({
     zIndex: 1000,
 
     touchAction: "none",
+
+    opacity: isSaving ? 0.6 : 1,
 
     left: field.xPosition * scale,
 

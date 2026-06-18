@@ -195,6 +195,19 @@ function PdfViewer({
             - (fieldHeight / 2)
         );
 
+        const tempId = `temp-${Date.now()}`;
+        const newField = {
+            id: tempId,
+            signerId: selectedSignerId,
+            pageNumber,
+            xPosition: pdfX,
+            yPosition: pdfY,
+            width: fieldWidth,
+            height: fieldHeight,
+            required: true
+        };
+
+        setLocalFields(prev => [...(prev || []), newField]);
         setCreatingField(true);
 
         try {
@@ -216,6 +229,8 @@ function PdfViewer({
 
         } catch (error) {
 
+            // Revert optimistic insert on error
+            setLocalFields(prev => prev.filter(f => f.id !== tempId));
             alert(
                 error.response?.data?.message ||
                 "Failed to create signature field"
