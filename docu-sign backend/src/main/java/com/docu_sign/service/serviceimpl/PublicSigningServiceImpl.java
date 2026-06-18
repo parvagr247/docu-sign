@@ -151,9 +151,13 @@ public class PublicSigningServiceImpl implements PublicSigningService {
 
         System.out.println("STEP 2 - Download original PDF");
 
+        String pdfStoragePath = document.getSignedDocumentPath() != null ?
+                document.getSignedDocumentPath() :
+                document.getStoragePath();
+
         byte[] originalPdfBytes =
                 storageService.downloadFileBytes(
-                        document.getStoragePath()
+                        pdfStoragePath
                 );
 
         System.out.println("STEP 3 - Render signed PDF");
@@ -272,10 +276,13 @@ public class PublicSigningServiceImpl implements PublicSigningService {
                                         )
                         );
 
+        String path = signer.getDocument().getSignedDocumentPath() != null ?
+                signer.getDocument().getSignedDocumentPath() :
+                signer.getDocument().getStoragePath();
+
         return storageService
                 .downloadFileBytes(
-                        signer.getDocument()
-                                .getStoragePath()
+                        path
                 );
     }
 
@@ -424,9 +431,13 @@ public class PublicSigningServiceImpl implements PublicSigningService {
 
         System.out.println("STEP B - PDF DOWNLOADED");
 
+        String pdfStoragePath = document.getSignedDocumentPath() != null ?
+                document.getSignedDocumentPath() :
+                document.getStoragePath();
+
         byte[] originalPdfBytes =
                 storageService.downloadFileBytes(
-                        document.getStoragePath()
+                        pdfStoragePath
                 );
 
         System.out.println("STEP C - PDF RENDERED");
