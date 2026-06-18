@@ -158,17 +158,24 @@ public class SignatureFieldServiceImpl implements SignatureFieldService {
 
                 PDRectangle mediaBox = pdf.getPage(request.pageNumber() - 1 ).getMediaBox();
 
-                float pageWidth = mediaBox.getWidth();
+                 float pageWidth = mediaBox.getWidth();
+                 float pageHeight = mediaBox.getHeight();
 
-                float pageHeight = mediaBox.getHeight();
+                 float scaleX = pageWidth / 612.0f;
+                 float scaleY = pageHeight / 792.0f;
 
-                if (request.xPosition() + request.width() > pageWidth) {
-                    throw new BusinessValidationException( "Field exceeds page width" );
-                }
+                 float scaledX = request.xPosition() * scaleX;
+                 float scaledWidth = request.width() * scaleX;
+                 float scaledY = request.yPosition() * scaleY;
+                 float scaledHeight = request.height() * scaleY;
 
-                if (request.yPosition() + request.height() > pageHeight) {
-                    throw new BusinessValidationException( "Field exceeds page height" );
-                }
+                 if (scaledX + scaledWidth > pageWidth) {
+                     throw new BusinessValidationException( "Field exceeds page width" );
+                 }
+
+                 if (scaledY + scaledHeight > pageHeight) {
+                     throw new BusinessValidationException( "Field exceeds page height" );
+                 }
             }
         } catch (BusinessValidationException ex) {
 

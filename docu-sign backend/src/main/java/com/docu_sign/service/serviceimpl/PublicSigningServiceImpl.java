@@ -582,11 +582,16 @@ public class PublicSigningServiceImpl implements PublicSigningService {
 
                 float pageHeight =
                         page.getMediaBox().getHeight();
+                float pageWidth =
+                        page.getMediaBox().getWidth();
 
-                float pdfY =
-                        pageHeight
-                                - field.getYPosition()
-                                - field.getHeight();
+                float scaleX = pageWidth / 612.0f;
+                float scaleY = pageHeight / 792.0f;
+
+                float pdfX = field.getXPosition() * scaleX;
+                float pdfY = field.getYPosition() * scaleY;
+                float width = field.getWidth() * scaleX;
+                float height = field.getHeight() * scaleY;
 
                 try (
                         PDPageContentStream contentStream =
@@ -600,10 +605,10 @@ public class PublicSigningServiceImpl implements PublicSigningService {
 
                     contentStream.drawImage(
                             image,
-                            field.getXPosition(),
+                            pdfX,
                             pdfY,
-                            field.getWidth(),
-                            field.getHeight()
+                            width,
+                            height
                     );
                 }
             }
