@@ -580,16 +580,15 @@ public class PublicSigningServiceImpl implements PublicSigningService {
 
                 PDPage page = pdf.getPage(field.getPageNumber() - 1 );
 
-                float pageHeight =
-                        page.getMediaBox().getHeight();
-                float pageWidth =
-                        page.getMediaBox().getWidth();
+                PDRectangle cropBox = page.getCropBox();
+                float pageHeight = cropBox.getHeight();
+                float pageWidth = cropBox.getWidth();
 
                 float scaleX = pageWidth / 612.0f;
                 float scaleY = pageHeight / 792.0f;
 
-                float pdfX = field.getXPosition() * scaleX;
-                float pdfY = field.getYPosition() * scaleY;
+                float pdfX = cropBox.getLowerLeftX() + (field.getXPosition() * scaleX);
+                float pdfY = cropBox.getLowerLeftY() + (field.getYPosition() * scaleY);
                 float width = field.getWidth() * scaleX;
                 float height = field.getHeight() * scaleY;
 

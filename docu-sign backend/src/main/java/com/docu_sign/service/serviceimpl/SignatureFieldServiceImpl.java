@@ -156,10 +156,10 @@ public class SignatureFieldServiceImpl implements SignatureFieldService {
                     );
                 }
 
-                PDRectangle mediaBox = pdf.getPage(request.pageNumber() - 1 ).getMediaBox();
+                PDRectangle cropBox = pdf.getPage(request.pageNumber() - 1 ).getCropBox();
 
-                 float pageWidth = mediaBox.getWidth();
-                 float pageHeight = mediaBox.getHeight();
+                float pageWidth = cropBox.getWidth();
+                float pageHeight = cropBox.getHeight();
 
                  float scaleX = pageWidth / 612.0f;
                  float scaleY = pageHeight / 792.0f;
