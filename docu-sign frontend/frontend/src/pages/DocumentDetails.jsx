@@ -203,6 +203,7 @@ function DocumentDetails() {
                                 documentId={id}
                                 selectedSignerId={selectedSignerId}
                                 fields={fields}
+                                setFields={setFields}
                                 onFieldCreated={loadFields}
                                 documentStatus={document.status}
                                 signers={signers}

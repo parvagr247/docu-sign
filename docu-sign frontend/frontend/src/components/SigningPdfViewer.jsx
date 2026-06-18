@@ -48,7 +48,10 @@ function SigningPdfViewer({
     const dims = getPageOriginalDimensions(page);
     setPageDimensionsMap(prev => ({
       ...prev,
-      [page.pageNumber]: dims
+      [page.pageNumber]: {
+        ...dims,
+        rotation: page.rotate || 0
+      }
     }));
   };
 
@@ -121,38 +124,27 @@ function SigningPdfViewer({
                         field.pageNumber ===
                         pageNumber
                     )
-                    .map(field => (
+                    .map(field => {
+                      const dims = pageDimensionsMap[pageNumber] || { width: 612, height: 792, rotation: 0 };
+                      const isRotated = dims.rotation === 90 || dims.rotation === 270;
+                      const visualPageWidth = isRotated ? dims.height : dims.width;
+                      const visualPageHeight = isRotated ? dims.width : dims.height;
 
-                      <SigningFieldOverlay
-                        key={field.id}
-
-                        field={field}
-
-                        pageWidth={pageDimensionsMap[pageNumber]?.width || 612}
-
-                        pageHeight={pageDimensionsMap[pageNumber]?.height || 792}
-
-                        renderedWidth={800}
-
-                        signatureImageUrl={
-                          signatureImageUrl
-                        }
-
-                        onClick={() => {
-
-                          console.log(
-                            "FIELD ID",
-                            field.id
-                          );
-
-                          onFieldClick(
-                            field.id
-                          );
-
-                        }}
-                      />
-
-                    ))
+                      return (
+                        <SigningFieldOverlay
+                          key={field.id}
+                          field={field}
+                          pageWidth={visualPageWidth}
+                          pageHeight={visualPageHeight}
+                          renderedWidth={800}
+                          signatureImageUrl={signatureImageUrl}
+                          onClick={() => {
+                            console.log("FIELD ID", field.id);
+                            onFieldClick(field.id);
+                          }}
+                        />
+                      );
+                    })
                 }
 
               </div>

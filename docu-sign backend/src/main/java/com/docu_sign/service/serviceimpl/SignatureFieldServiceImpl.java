@@ -16,6 +16,7 @@ import com.docu_sign.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.springframework.stereotype.Service;
 
@@ -41,18 +42,17 @@ public class SignatureFieldServiceImpl implements SignatureFieldService {
                 .orElseThrow(() -> new ResourceNotFoundException(("Signer Not Found")));
 
         validateSignerBelongsToDocument(signer, document);
-        validateFieldPlacement(document,request);
 
         SignatureField field = SignatureField.builder()
                 .document(document)
                 .signer(signer)
                 .pageNumber(request.pageNumber())
-                .xPosition(request.xPosition())
-                .yPosition(request.yPosition())
                 .width(request.width())
                 .height(request.height())
                 .required(request.required())
                 .build();
+
+        clampAndSetCoordinates(field, document, request.xPosition(), request.yPosition());
 
         SignatureField savedField = signatureFieldRepository.save(field);
 
@@ -89,9 +89,7 @@ public class SignatureFieldServiceImpl implements SignatureFieldService {
 
         getOwnedDocument( document.getId() );
 
-        field.setXPosition( request.xPosition() );
-
-        field.setYPosition( request.yPosition() );
+        clampAndSetCoordinates(field, document, request.xPosition(), request.yPosition());
 
         SignatureField updatedField = signatureFieldRepository.save(field);
 
@@ -142,42 +140,42 @@ public class SignatureFieldServiceImpl implements SignatureFieldService {
                 .build();
     }
 
-    private void validateFieldPlacement(Document document, CreateSignatureFieldRequest request){
+    private void clampAndSetCoordinates(SignatureField field, Document document, float x, float y) {
         try {
-            byte[] pdfBytes = storageService.downloadFileBytes( document.getStoragePath());
+            byte[] pdfBytes = storageService.downloadFileBytes(document.getStoragePath());
 
             try (PDDocument pdf = Loader.loadPDF(pdfBytes)) {
-
                 int totalPages = pdf.getNumberOfPages();
 
-                if (request.pageNumber() > totalPages) {
-                    throw new BusinessValidationException(
-                            "Invalid page number"
-                    );
+                if (field.getPageNumber() > totalPages) {
+                    throw new BusinessValidationException("Invalid page number");
                 }
 
-                PDRectangle cropBox = pdf.getPage(request.pageNumber() - 1 ).getCropBox();
+                PDPage page = pdf.getPage(field.getPageNumber() - 1);
+                PDRectangle cropBox = page.getCropBox();
+                int rotation = page.getRotation();
 
                 float pageWidth = cropBox.getWidth();
                 float pageHeight = cropBox.getHeight();
-
-                if (request.xPosition() + request.width() > pageWidth) {
-                    throw new BusinessValidationException( "Field exceeds page width" );
+                if (rotation == 90 || rotation == 270) {
+                    pageWidth = cropBox.getHeight();
+                    pageHeight = cropBox.getWidth();
                 }
 
-                if (request.yPosition() + request.height() > pageHeight) {
-                    throw new BusinessValidationException( "Field exceeds page height" );
-                }
+                // Clamp to page boundaries
+                float clampedX = Math.max(0f, Math.min(pageWidth - field.getWidth(), x));
+                float clampedY = Math.max(0f, Math.min(pageHeight - field.getHeight(), y));
+
+                field.setXPosition(clampedX);
+                field.setYPosition(clampedY);
             }
         } catch (BusinessValidationException ex) {
-
             throw ex;
-
         } catch (Exception ex) {
-
-            throw new BusinessValidationException( "Unable to validate PDF placement" );
+            // Fallback if PDF loading fails
+            field.setXPosition(Math.max(0f, x));
+            field.setYPosition(Math.max(0f, y));
         }
-
     }
 
 

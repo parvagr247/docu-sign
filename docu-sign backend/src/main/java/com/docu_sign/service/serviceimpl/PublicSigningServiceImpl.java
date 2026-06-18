@@ -16,6 +16,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.util.Matrix;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -573,20 +574,28 @@ public class PublicSigningServiceImpl implements PublicSigningService {
     }
 
     private byte[] renderSignedPdf( byte[] pdfBytes,  byte[] signatureBytes,  List<SignatureField> fields ) {
+        System.out.println("[DIAGNOSTIC] Starting renderSignedPdf. Fields count: " + (fields != null ? fields.size() : 0));
+        System.out.println("[DIAGNOSTIC] Signature bytes length: " + (signatureBytes != null ? signatureBytes.length : 0));
 
         try ( PDDocument pdf = Loader.loadPDF(pdfBytes) ) {
             PDImageXObject image = PDImageXObject.createFromByteArray( pdf, signatureBytes, "signature" );
 
             for (SignatureField field : fields) {
-
                 PDPage page = pdf.getPage(field.getPageNumber() - 1 );
-
                 PDRectangle cropBox = page.getCropBox();
+                int rotation = page.getRotation();
+
+                System.out.println("[DIAGNOSTIC] Processing field ID: " + field.getId());
+                System.out.println("[DIAGNOSTIC] Page Number: " + field.getPageNumber() + ", Rotation: " + rotation);
+                System.out.println("[DIAGNOSTIC] Page CropBox: " + cropBox);
+                System.out.println("[DIAGNOSTIC] Field position in DB: X=" + field.getXPosition() + ", Y=" + field.getYPosition() + ", Width=" + field.getWidth() + ", Height=" + field.getHeight());
 
                 float pdfX = cropBox.getLowerLeftX() + field.getXPosition();
                 float pdfY = cropBox.getLowerLeftY() + field.getYPosition();
                 float width = field.getWidth();
                 float height = field.getHeight();
+
+                System.out.println("[DIAGNOSTIC] Render coordinates (relative to MediaBox): X=" + pdfX + ", Y=" + pdfY + ", Width=" + width + ", Height=" + height);
 
                 try (
                         PDPageContentStream contentStream =
@@ -594,28 +603,52 @@ public class PublicSigningServiceImpl implements PublicSigningService {
                                         pdf,
                                         page,
                                         PDPageContentStream.AppendMode.APPEND,
+                                        true,
                                         true
                                 )
                 ) {
-
-                    contentStream.drawImage(
-                            image,
-                            pdfX,
-                            pdfY,
-                            width,
-                            height
-                    );
+                    if (rotation != 0) {
+                        contentStream.saveGraphicsState();
+                        Matrix matrix;
+                        if (rotation == 90) {
+                            matrix = Matrix.getRotateInstance(Math.toRadians(90), cropBox.getWidth() + cropBox.getLowerLeftX(), cropBox.getLowerLeftY());
+                        } else if (rotation == 180) {
+                            matrix = Matrix.getRotateInstance(Math.toRadians(180), cropBox.getWidth() + cropBox.getLowerLeftX(), cropBox.getHeight() + cropBox.getLowerLeftY());
+                        } else if (rotation == 270) {
+                            matrix = Matrix.getRotateInstance(Math.toRadians(270), cropBox.getLowerLeftX(), cropBox.getHeight() + cropBox.getLowerLeftY());
+                        } else {
+                            matrix = new Matrix();
+                        }
+                        contentStream.transform(matrix);
+                        contentStream.drawImage(
+                                image,
+                                field.getXPosition(),
+                                field.getYPosition(),
+                                width,
+                                height
+                        );
+                        contentStream.restoreGraphicsState();
+                    } else {
+                        contentStream.drawImage(
+                                image,
+                                pdfX,
+                                pdfY,
+                                width,
+                                height
+                        );
+                    }
                 }
+                System.out.println("[DIAGNOSTIC] Image drawn successfully on page " + field.getPageNumber());
             }
 
             ByteArrayOutputStream output = new ByteArrayOutputStream();
-
             pdf.save(output);
-
-            return output.toByteArray();
+            byte[] result = output.toByteArray();
+            System.out.println("[DIAGNOSTIC] PDF saved successfully. Size: " + result.length + " bytes");
+            return result;
 
         } catch (Exception ex) {
-
+            System.err.println("[DIAGNOSTIC] Error rendering signed PDF!");
             ex.printStackTrace();
 
             throw new BusinessValidationException(

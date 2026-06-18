@@ -42,6 +42,7 @@ function PdfViewer({
     documentId,
     selectedSignerId,
     fields,
+    setFields,
     onFieldCreated,
     documentStatus,
     signers,
@@ -77,21 +78,18 @@ function PdfViewer({
     const [lastDragTime, setLastDragTime] =
         useState(0);
 
-    const [localFields, setLocalFields] = useState(fields);
-
     const [pageDimensionsMap, setPageDimensionsMap] = useState({});
 
     const handlePageLoadSuccess = (page) => {
         const dims = getPageOriginalDimensions(page);
         setPageDimensionsMap(prev => ({
             ...prev,
-            [page.pageNumber]: dims
+            [page.pageNumber]: {
+                ...dims,
+                rotation: page.rotate || 0
+            }
         }));
     };
-
-    useEffect(() => {
-        setLocalFields(fields);
-    }, [fields]);
 
     useEffect(() => {
 
@@ -127,8 +125,6 @@ function PdfViewer({
             return;
         }
 
-
-
         console.log(
             "CREATE FIELD TRIGGERED"
         );
@@ -153,8 +149,6 @@ function PdfViewer({
 
             return;
         }
-
-
 
         if (!selectedSignerId) {
 
@@ -185,17 +179,11 @@ function PdfViewer({
         const displayedHeight =
             rect.height;
 
-        /*
-          Temporary values.
-    
-          Day 20 improvement:
-          Read actual PDF dimensions
-          dynamically from PDF.js.
-        */
-
-        const dims = pageDimensionsMap[pageNumber] || { width: 612, height: 792 };
-        const pdfWidth = dims.width;
-        const pdfHeight = dims.height;
+        const dims = pageDimensionsMap[pageNumber] || { width: 612, height: 792, rotation: 0 };
+        const rotation = dims.rotation || 0;
+        const isRotated = rotation === 90 || rotation === 270;
+        const pdfWidth = isRotated ? dims.height : dims.width;
+        const pdfHeight = isRotated ? dims.width : dims.height;
 
         const scaleX =
             pdfWidth / displayedWidth;
@@ -208,15 +196,18 @@ function PdfViewer({
 
         const pdfX = Math.max(
             0,
-            (clickX * scaleX)
-            - (fieldWidth / 2)
+            Math.min(
+                pdfWidth - fieldWidth,
+                (clickX * scaleX) - (fieldWidth / 2)
+            )
         );
 
         const pdfY = Math.max(
             0,
-            pdfHeight -
-            (clickY * scaleY)
-            - (fieldHeight / 2)
+            Math.min(
+                pdfHeight - fieldHeight,
+                pdfHeight - (clickY * scaleY) - (fieldHeight / 2)
+            )
         );
 
         const tempId = `temp-${Date.now()}`;
@@ -231,12 +222,12 @@ function PdfViewer({
             required: true
         };
 
-        setLocalFields(prev => [...(prev || []), newField]);
+        setFields(prev => [...(prev || []), newField]);
         setCreatingField(true);
 
         try {
 
-            await createSignatureField(
+            const savedField = await createSignatureField(
                 documentId,
                 {
                     signerId: selectedSignerId,
@@ -249,12 +240,34 @@ function PdfViewer({
                 }
             );
 
-            await onFieldCreated();
+            // Replace temp field with backend response.
+            // If the field was dragged while it was saving, preserve the coordinates
+            // and asynchronously send an update to the backend.
+            setFields(prev => {
+                const currentTemp = prev.find(f => f.id === tempId);
+                const currentX = currentTemp ? currentTemp.xPosition : savedField.xPosition;
+                const currentY = currentTemp ? currentTemp.yPosition : savedField.yPosition;
+
+                const finalField = {
+                    ...savedField,
+                    xPosition: currentX,
+                    yPosition: currentY
+                };
+
+                if (currentX !== savedField.xPosition || currentY !== savedField.yPosition) {
+                    updateSignatureField(savedField.id, {
+                        xPosition: currentX,
+                        yPosition: currentY
+                    }).catch(console.error);
+                }
+
+                return [...prev.filter(f => f.id !== tempId), finalField];
+            });
 
         } catch (error) {
 
             // Revert optimistic insert on error
-            setLocalFields(prev => prev.filter(f => f.id !== tempId));
+            setFields(prev => prev.filter(f => f.id !== tempId));
             alert(
                 error.response?.data?.message ||
                 "Failed to create signature field"
@@ -277,68 +290,43 @@ function PdfViewer({
         console.log("ACTIVE", active.id);
         console.log("DELTA", delta);
 
-        const field = localFields.find(
+        const field = fields.find(
             f => f.id === active.id
-        );
-
-        console.log(
-            "FIELD BEFORE",
-            JSON.stringify(field, null, 2)
         );
 
         if (!field) return;
 
-        console.log(
-            "OLD X:",
-            field.xPosition
-        );
-
-        console.log(
-            "OLD Y:",
-            field.yPosition
-        );
-
-
-
-
-        const dims = pageDimensionsMap[field.pageNumber] || { width: 612, height: 792 };
-        const pageWidth = dims.width;
-        const pageHeight = dims.height;
+        const dims = pageDimensionsMap[field.pageNumber] || { width: 612, height: 792, rotation: 0 };
+        const rotation = dims.rotation || 0;
+        const isRotated = rotation === 90 || rotation === 270;
+        const pageWidth = isRotated ? dims.height : dims.width;
+        const pageHeight = isRotated ? dims.width : dims.height;
         const renderedWidth = 800;
 
         const scale =
             pageWidth / renderedWidth;
 
-        const newX =
-            field.xPosition +
-            delta.x * scale;
-
-        const newY =
-            field.yPosition -
-            delta.y * scale;
-
-        console.log(
-            "NEW X:",
-            newX
+        const newX = Math.max(
+            0,
+            Math.min(
+                pageWidth - field.width,
+                field.xPosition + delta.x * scale
+            )
         );
 
-        console.log(
-            "NEW Y:",
-            newY
+        const newY = Math.max(
+            0,
+            Math.min(
+                pageHeight - field.height,
+                field.yPosition - delta.y * scale
+            )
         );
 
-        console.log(
-            "NEW POSITION",
-            {
-                oldX: field.xPosition,
-                oldY: field.yPosition,
-                newX,
-                newY
-            }
-        );
+        // Keep track of old state for rollback
+        const originalFields = [...fields];
 
-        // Optimistically update coordinates in local state
-        setLocalFields(prev =>
+        // Optimistically update coordinates in parent state
+        setFields(prev =>
             prev.map(f =>
                 f.id === field.id
                     ? { ...f, xPosition: newX, yPosition: newY }
@@ -346,34 +334,36 @@ function PdfViewer({
             )
         );
 
-        try {
+        // Only save to backend if it is a real field (not temp)
+        if (!field.id.toString().startsWith("temp-")) {
+            try {
 
-            const response =
-                await updateSignatureField(
-                    field.id,
-                    {
-                        xPosition: newX,
-                        yPosition: newY
-                    }
+                const response =
+                    await updateSignatureField(
+                        field.id,
+                        {
+                            xPosition: newX,
+                            yPosition: newY
+                        }
+                    );
+
+                console.log(
+                    "UPDATE RESPONSE",
+                    JSON.stringify(response, null, 2)
                 );
 
-            console.log(
-                "UPDATE RESPONSE",
-                JSON.stringify(response, null, 2)
-            );
+                // Update parent state with response from backend
+                setFields(prev =>
+                    prev.map(f => f.id === field.id ? response : f)
+                );
 
-            await onFieldCreated();
+            } catch (error) {
 
-            console.log(
-                "UPDATE SUCCESS"
-            );
+                console.error(error);
+                // Revert back on error
+                setFields(originalFields);
 
-        } catch (error) {
-
-            console.error(error);
-            // Revert back on error
-            setLocalFields(fields);
-
+            }
         }
     };
 
@@ -458,7 +448,7 @@ function PdfViewer({
                                         </div>
 
                                         {
-                                            localFields
+                                            fields
                                                 ?.filter(
                                                     field =>
                                                         field.pageNumber ===
@@ -473,13 +463,18 @@ function PdfViewer({
                                                                 field.signerId
                                                         );
 
+                                                    const dims = pageDimensionsMap[pageNumber] || { width: 612, height: 792, rotation: 0 };
+                                                    const isRotated = dims.rotation === 90 || dims.rotation === 270;
+                                                    const visualPageWidth = isRotated ? dims.height : dims.width;
+                                                    const visualPageHeight = isRotated ? dims.width : dims.height;
+
                                                     return (
 
                                                         <DraggableSignatureField
                                                             key={field.id}
                                                             field={field}
-                                                            pageWidth={pageDimensionsMap[pageNumber]?.width || 612}
-                                                            pageHeight={pageDimensionsMap[pageNumber]?.height || 792}
+                                                            pageWidth={visualPageWidth}
+                                                            pageHeight={visualPageHeight}
                                                             renderedWidth={800}
                                                             signerName={
                                                                 signer?.name ||

@@ -21,6 +21,8 @@ public class StorageServiceImpl implements StorageService {
     private final SupabaseConfig supabaseConfig;
     private final RestTemplate restTemplate;
 
+    private final java.util.Map<String, byte[]> fileBytesCache = new java.util.concurrent.ConcurrentHashMap<>();
+
     @Override
     public String uploadFile(MultipartFile file) {
 
@@ -146,6 +148,12 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public byte[] downloadFileBytes(String storagePath) {
+        if (storagePath == null) {
+            return new byte[0];
+        }
+        if (fileBytesCache.containsKey(storagePath)) {
+            return fileBytesCache.get(storagePath);
+        }
         try {
 
             String downloadUrl =
@@ -187,7 +195,9 @@ public class StorageServiceImpl implements StorageService {
                 );
             }
 
-            return response.getBody();
+            byte[] bytes = response.getBody();
+            fileBytesCache.put(storagePath, bytes);
+            return bytes;
 
         } catch (Exception e) {
 
@@ -200,6 +210,10 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public String uploadBytes(byte[] bytes, String fileName, String contentType) {
+
+        if (fileName != null) {
+            fileBytesCache.remove(fileName);
+        }
 
         try {
 

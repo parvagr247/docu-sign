@@ -20,8 +20,7 @@ function DraggableSignatureField({
     setNodeRef,
     transform
   } = useDraggable({
-    id: field.id,
-    disabled: isSaving
+    id: field.id
   });
 
   const scale =
