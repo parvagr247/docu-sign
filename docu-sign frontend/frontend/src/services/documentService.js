@@ -1,4 +1,4 @@
-import api from "../api/axios";
+import api, { API_BASE_URL } from "../api/axios";
 import { getToken } from "../utils/token";
 
 export const getDocuments = async () => {
@@ -67,7 +67,7 @@ export const sendSignatureRequest =
 
 export const getDocumentDownloadUrl =
   (documentId) => {
-    return `${import.meta.env.VITE_API_URL}/api/documents/${documentId}/download`;
+    return `${API_BASE_URL}/api/documents/${documentId}/download`;
 };
 
 export const downloadDocumentBlob = async (

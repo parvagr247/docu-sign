@@ -8,6 +8,7 @@ import {
 
 import SigningPdfViewer
     from "../components/SigningPdfViewer";
+import { API_BASE_URL } from "../api/axios";
 
 
 import SignatureCanvas
@@ -382,7 +383,7 @@ setMessage(
             pdfBlob={pdfBlob}
             fields={fields}
             signatureImageUrl={
-              `${import.meta.env.VITE_API_URL}/api/public/sign/${token}/signature`
+              `${API_BASE_URL}/api/public/sign/${token}/signature`
             }
             onFieldClick={
               handleFieldClick
