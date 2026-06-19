@@ -56,3 +56,20 @@
 .login-card button:hover {
   opacity: 0.9;
 }
+
+.login-toggle {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.login-toggle span {
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.login-toggle span:hover {
+  text-decoration: underline;
+}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { login } from "../services/authService";
+import { login, register } from "../services/authService";
 import { saveAuthData } from "../utils/token";
 
 import "./styles/Login.css";
@@ -10,6 +10,8 @@ function Login() {
 
   const navigate = useNavigate();
 
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -27,7 +29,28 @@ function Login() {
 
       console.error(error);
 
-        alert(error.message);
+      alert(error.response?.data?.message || error.message);
+
+    }
+
+  };
+
+  const handleRegister = async () => {
+
+    try {
+
+      await register(fullName, email, password);
+
+      alert("User registered successfully. Please login.");
+      setIsRegistering(false);
+      setFullName("");
+      setPassword("");
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert(error.response?.data?.message || error.message);
 
     }
 
@@ -41,8 +64,19 @@ function Login() {
       <h1>E-Sign Platform</h1>
 
       <p>
-        Secure document signing made simple
+        {isRegistering ? "Create your account" : "Secure document signing made simple"}
       </p>
+
+      {isRegistering && (
+        <input
+          type="text"
+          placeholder="Full Name"
+          value={fullName}
+          onChange={(e) =>
+            setFullName(e.target.value)
+          }
+        />
+      )}
 
       <input
         type="email"
@@ -62,11 +96,33 @@ function Login() {
         }
       />
 
-      <button
-        onClick={handleLogin}
-      >
-        Login
-      </button>
+      {isRegistering ? (
+        <button
+          onClick={handleRegister}
+        >
+          Register
+        </button>
+      ) : (
+        <button
+          onClick={handleLogin}
+        >
+          Login
+        </button>
+      )}
+
+      <div className="login-toggle">
+        {isRegistering ? (
+          <>
+            Already have an account?{" "}
+            <span onClick={() => setIsRegistering(false)}>Login</span>
+          </>
+        ) : (
+          <>
+            Don't have an account?{" "}
+            <span onClick={() => setIsRegistering(true)}>Register</span>
+          </>
+        )}
+      </div>
 
     </div>
 
